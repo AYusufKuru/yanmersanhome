@@ -6,7 +6,8 @@ Mermer, ahşap ve kişisel ürünler için tek mağazalı e-ticaret sitesi.
 
 ```bash
 npm install
+npx prisma dev
 npm run dev
 ```
 
-Site `http://localhost:3000` adresinde açılır. Ortam değişkenlerinin listesi `.env.example` dosyasındadır.
+`npx prisma dev` yerel PostgreSQL sürecini açar. Çıktıdaki `DATABASE_URL` ve `SHADOW_DATABASE_URL` değerlerini `.env` dosyasına yazın, ardından `npm run db:migrate` ile tabloları oluşturun. Yönetici hesabı `ADMIN_EMAIL` ve `ADMIN_PASSWORD` ile `npm run db:seed` komutundan gelir; giriş adresi `/admin/giris`. Aynı komut üç kök kategoriyi de oluşturur. Ürünler `/admin/urunler` altından yönetilir. Site `http://localhost:3000` adresinde açılır. Vitrin henüz örnek veriyi kullanır. Ortam değişkenlerinin listesi `.env.example` dosyasındadır.

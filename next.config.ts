@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pg", "@prisma/adapter-pg", "@prisma/client"],
   images: {
     localPatterns: [
       {
         pathname: "/catalog/**",
+        search: "",
+      },
+      {
+        pathname: "/uploads/**",
         search: "",
       },
     ],

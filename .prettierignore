@@ -7,3 +7,4 @@ build
 .env*
 PROJECT.md
 AGENTS.md
+src/generated

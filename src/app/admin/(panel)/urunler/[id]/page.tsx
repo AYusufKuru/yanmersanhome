@@ -1,0 +1,79 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  deleteProduct,
+  updateProduct,
+} from "@/app/admin/(panel)/urunler/actions";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { ProductForm } from "@/components/admin/product-form";
+import { moneyInput } from "@/lib/admin/labels";
+import { requireAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+
+export const metadata: Metadata = { title: "Ürünü düzenle" };
+export const instant = false;
+
+export default async function EditProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  await requireAdmin();
+  const { id } = await params;
+  const [product, categories] = await Promise.all([
+    prisma.product.findUnique({
+      where: { id },
+      include: { images: { orderBy: { sortOrder: "asc" } } },
+    }),
+    prisma.category.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { id: true, name: true },
+    }),
+  ]);
+  if (!product) {
+    notFound();
+  }
+
+  return (
+    <section className="mx-auto w-full max-w-xl px-4 py-8 sm:px-6">
+      <Link href="/admin/urunler" className="text-sm text-coffee">
+        Ürünlere dön
+      </Link>
+      <h1 className="font-display mt-4 text-4xl text-espresso">
+        {product.name}
+      </h1>
+      <ProductForm
+        action={updateProduct.bind(null, product.id)}
+        categories={categories}
+        submitLabel="Değişiklikleri kaydet"
+        values={{
+          name: product.name,
+          slug: product.slug,
+          summary: product.summary,
+          description: product.description,
+          price: moneyInput(product.price),
+          compareAtPrice: product.compareAtPrice
+            ? moneyInput(product.compareAtPrice)
+            : "",
+          sku: product.sku,
+          stock: product.stock,
+          status: product.status,
+          featured: product.featured,
+          categoryId: product.categoryId,
+          seoTitle: product.seoTitle ?? "",
+          seoDescription: product.seoDescription ?? "",
+          images: product.images.map((image) => ({
+            id: image.id,
+            url: image.url,
+            alt: image.alt,
+          })),
+        }}
+      />
+      <DeleteButton
+        action={deleteProduct.bind(null, product.id)}
+        label="Ürünü sil"
+      />
+    </section>
+  );
+}
