@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type PointerEvent } from "react";
-import type { HeroSlide } from "@/data/sample-catalog";
+import type { HeroSlide } from "@/data/hero";
 
 type HeroSliderProps = {
   slides: HeroSlide[];

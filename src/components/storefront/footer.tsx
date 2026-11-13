@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { categories } from "@/data/sample-catalog";
 
-export function Footer() {
+export function Footer({
+  categories,
+}: {
+  categories: { slug: string; name: string }[];
+}) {
   return (
     <footer className="bg-espresso text-background">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-6 md:grid-cols-3 md:py-16">

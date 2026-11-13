@@ -34,8 +34,7 @@ export default async function ProductsPage() {
         </Link>
       </div>
       <p className="mt-3 max-w-lg text-sm leading-6 text-muted">
-        Buradan kaydedilen ürünler veritabanındadır. Vitrin bir sonraki adımda
-        bu kayıtlara bağlanacak.
+        Yayındaki ürünler vitrinde görünür. Taslak ve arşiv müşteriye açılmaz.
       </p>
       {products.length === 0 ? (
         <p className="mt-8 text-base text-muted">Henüz ürün yok.</p>

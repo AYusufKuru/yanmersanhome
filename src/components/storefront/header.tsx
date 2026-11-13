@@ -2,11 +2,25 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { categories } from "@/data/sample-catalog";
-import { AccountIcon, CartIcon, MenuIcon, SearchIcon } from "./icons";
+import type { CartView } from "@/lib/cart-view";
+import { CartDrawer } from "./cart-drawer";
+import { AccountIcon, MenuIcon, SearchIcon } from "./icons";
 import { MobileMenu } from "./mobile-menu";
 
-export function Header() {
+type HeaderCategory = {
+  slug: string;
+  name: string;
+};
+
+export function Header({
+  categories,
+  cart,
+  accountName,
+}: {
+  categories: HeaderCategory[];
+  cart: CartView;
+  accountName?: string | null;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -53,18 +67,12 @@ export function Header() {
         <div className="ml-auto flex items-center lg:ml-0">
           <Link
             href="/hesap"
-            aria-label="Hesap"
+            aria-label={accountName ? `Hesap, ${accountName}` : "Hesap"}
             className="grid h-11 w-11 place-items-center text-espresso"
           >
             <AccountIcon className="h-5 w-5" />
           </Link>
-          <Link
-            href="/sepet"
-            aria-label="Sepet"
-            className="grid h-11 w-11 place-items-center text-espresso"
-          >
-            <CartIcon className="h-5 w-5" />
-          </Link>
+          <CartDrawer cart={cart} />
           <button
             type="button"
             className="grid h-11 w-11 place-items-center text-espresso lg:hidden"
@@ -76,7 +84,11 @@ export function Header() {
           </button>
         </div>
       </div>
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu
+        categories={categories}
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+      />
     </header>
   );
 }

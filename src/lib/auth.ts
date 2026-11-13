@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { accountCookieName, accountMaxAgeSeconds } from "@/lib/account-cookie";
 import { sessionCookieName, sessionMaxAgeSeconds } from "@/lib/session-cookie";
 
 const lockWindowMs = 15 * 60 * 1000;
@@ -13,6 +14,14 @@ export type AdminUser = {
   id: string;
   email: string;
   name: string;
+};
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  name: string;
+  phone: string | null;
+  role: "ADMIN" | "CUSTOMER";
 };
 
 function authSecret() {
@@ -53,37 +62,59 @@ export async function clearFailedAttempts(email: string) {
   });
 }
 
-export async function createSession(userId: string) {
+async function writeSessionCookie(
+  userId: string,
+  cookieName: string,
+  maxAge: number,
+) {
   const token = randomBytes(32).toString("base64url");
-  const expiresAt = new Date(Date.now() + sessionMaxAgeSeconds * 1000);
+  const expiresAt = new Date(Date.now() + maxAge * 1000);
 
   await prisma.session.create({
     data: { userId, tokenHash: hashToken(token), expiresAt },
   });
 
   const jar = await cookies();
-  jar.set(sessionCookieName, token, {
+  jar.set(cookieName, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: sessionMaxAgeSeconds,
+    maxAge,
     expires: expiresAt,
   });
 }
 
-export async function destroySession() {
+async function clearSessionCookie(cookieName: string) {
   const jar = await cookies();
-  const token = jar.get(sessionCookieName)?.value;
+  const token = jar.get(cookieName)?.value;
   if (token) {
     await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   }
-  jar.delete(sessionCookieName);
+  jar.delete(cookieName);
 }
 
-export async function getAdmin(): Promise<AdminUser | null> {
+export async function createSession(userId: string) {
+  await writeSessionCookie(userId, sessionCookieName, sessionMaxAgeSeconds);
+}
+
+export async function createAccountSession(userId: string) {
+  await writeSessionCookie(userId, accountCookieName, accountMaxAgeSeconds);
+}
+
+export async function destroySession() {
+  await clearSessionCookie(sessionCookieName);
+}
+
+export async function destroyAccountSession() {
+  await clearSessionCookie(accountCookieName);
+}
+
+export async function getSessionUser(
+  cookieName: string,
+): Promise<SessionUser | null> {
   const jar = await cookies();
-  const token = jar.get(sessionCookieName)?.value;
+  const token = jar.get(cookieName)?.value;
   if (!token) {
     return null;
   }
@@ -93,7 +124,15 @@ export async function getAdmin(): Promise<AdminUser | null> {
     select: {
       id: true,
       expiresAt: true,
-      user: { select: { id: true, email: true, name: true, role: true } },
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          phone: true,
+          role: true,
+        },
+      },
     },
   });
 
@@ -104,15 +143,16 @@ export async function getAdmin(): Promise<AdminUser | null> {
     return null;
   }
 
-  if (session.user.role !== "ADMIN") {
+  return session.user;
+}
+
+export async function getAdmin(): Promise<AdminUser | null> {
+  const user = await getSessionUser(sessionCookieName);
+  if (!user || user.role !== "ADMIN") {
     return null;
   }
 
-  return {
-    id: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-  };
+  return { id: user.id, email: user.email, name: user.name };
 }
 
 export async function requireAdmin() {

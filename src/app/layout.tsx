@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -12,12 +13,24 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
 });
 
+const description =
+  "Mermer, ahşap ve kişisel ürünler. Evde uzun süre kalan, sade parçalar.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Yanmersanhome",
     template: "%s · Yanmersanhome",
   },
-  description: "Mermer, ahşap ve kişisel ürünler.",
+  description,
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    siteName: "Yanmersanhome",
+    title: "Yanmersanhome",
+    description,
+  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {

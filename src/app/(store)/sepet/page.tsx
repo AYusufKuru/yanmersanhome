@@ -1,24 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { CartPanel } from "@/components/storefront/cart-panel";
+import { getCartView } from "@/lib/cart";
 
 export const metadata: Metadata = {
   title: "Sepet",
+  robots: { index: false, follow: false },
 };
 
-export default function CartPage() {
+export const instant = false;
+
+export default async function CartPage() {
+  const cart = await getCartView();
+
   return (
-    <section className="mx-auto flex max-w-xl flex-col items-start px-5 py-20">
-      <h1 className="font-display text-4xl text-espresso">Sepetiniz boş</h1>
-      <p className="mt-4 text-base leading-7 text-muted">
-        Beğendiğiniz parçalar burada toplanacak. Şimdilik vitrinden
-        bakabilirsiniz.
-      </p>
-      <Link
-        href="/"
-        className="mt-8 inline-flex h-12 items-center rounded-full bg-coffee px-6 text-sm text-background"
-      >
-        Vitrine dön
-      </Link>
+    <section className="mx-auto max-w-xl px-4 py-12 sm:px-6 sm:py-16">
+      <CartPanel cart={cart} idPrefix="sayfa" />
     </section>
   );
 }

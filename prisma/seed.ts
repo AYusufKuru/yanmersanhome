@@ -3,6 +3,7 @@ import { prisma } from "../src/lib/db";
 import { adminSeedSchema } from "../src/lib/auth-schema";
 import { hashPassword } from "../src/lib/password";
 import { ensureRootCategories } from "../src/lib/root-categories";
+import { ensureShowcaseProducts } from "../src/lib/showcase-products";
 
 async function main() {
   const parsed = adminSeedSchema.safeParse({
@@ -32,6 +33,7 @@ async function main() {
 
   await prisma.session.deleteMany({ where: { userId: admin.id } });
   await ensureRootCategories();
+  await ensureShowcaseProducts();
   console.log(`Yönetici hazır: ${admin.email}`);
 }
 

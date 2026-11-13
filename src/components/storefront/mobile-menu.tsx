@@ -1,16 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { categories } from "@/data/sample-catalog";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { CloseIcon } from "./icons";
 
 type MobileMenuProps = {
+  categories: { slug: string; name: string }[];
   open: boolean;
   onClose: () => void;
 };
 
-export function MobileMenu({ open, onClose }: MobileMenuProps) {
+export function MobileMenu({ categories, open, onClose }: MobileMenuProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) {
       return;
@@ -32,11 +39,11 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     };
   }, [open, onClose]);
 
-  if (!open) {
+  if (!open || !mounted) {
     return null;
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-background lg:hidden">
       <div className="flex h-full flex-col px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between">
@@ -86,6 +93,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           </Link>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
