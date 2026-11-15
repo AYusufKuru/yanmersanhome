@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { unlink } from "node:fs/promises";
 import path from "node:path";
+import { prisma } from "@/lib/db";
 
 const maxBytes = 4 * 1024 * 1024;
 
@@ -44,6 +45,39 @@ function sniff(bytes: Uint8Array) {
   return null;
 }
 
+let tableReady: Promise<void> | null = null;
+
+function ensureStoredImages() {
+  tableReady ??= (async () => {
+    await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "StoredImage" (
+      "id" TEXT NOT NULL,
+      "name" TEXT NOT NULL,
+      "contentType" TEXT NOT NULL,
+      "bytes" BYTEA NOT NULL,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "StoredImage_pkey" PRIMARY KEY ("id")
+    )`);
+    await prisma.$executeRawUnsafe(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "StoredImage_name_key" ON "StoredImage"("name")`,
+    );
+  })().catch((error: unknown) => {
+    tableReady = null;
+    throw error;
+  });
+  return tableReady;
+}
+
+function uploadName(url: string) {
+  if (!url.startsWith("/uploads/")) {
+    return null;
+  }
+  const name = url.slice("/uploads/".length);
+  if (!/^[\w.-]+$/.test(name)) {
+    return null;
+  }
+  return name;
+}
+
 export async function saveUpload(
   file: File,
 ): Promise<{ url: string } | { error: string }> {
@@ -58,25 +92,38 @@ export async function saveUpload(
   }
 
   const filename = `${randomBytes(16).toString("hex")}.${kind}`;
-  const directory = path.join(process.cwd(), "public", "uploads");
-  await mkdir(directory, { recursive: true });
-  await writeFile(path.join(directory, filename), bytes);
+  try {
+    await ensureStoredImages();
+    await prisma.storedImage.create({
+      data: {
+        name: filename,
+        contentType: kinds[kind],
+        bytes,
+      },
+    });
+  } catch {
+    return { error: "Görsel kaydedilemedi. Biraz küçültüp yeniden deneyin." };
+  }
   return { url: `/uploads/${filename}` };
 }
 
 export async function removeStoredImages(urls: string[]) {
+  const names = urls.flatMap((url) => {
+    const name = uploadName(url);
+    return name ? [name] : [];
+  });
+  if (names.length === 0) {
+    return;
+  }
+
+  await prisma.storedImage
+    .deleteMany({ where: { name: { in: names } } })
+    .catch(() => undefined);
   await Promise.all(
-    urls.map(async (url) => {
-      if (!url.startsWith("/uploads/")) {
-        return;
-      }
-      const name = url.slice("/uploads/".length);
-      if (!/^[\w.-]+$/.test(name)) {
-        return;
-      }
-      await unlink(path.join(process.cwd(), "public", "uploads", name)).catch(
+    names.map((name) =>
+      unlink(path.join(process.cwd(), "public", "uploads", name)).catch(
         () => undefined,
-      );
-    }),
+      ),
+    ),
   );
 }

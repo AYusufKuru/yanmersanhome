@@ -156,6 +156,14 @@ model ProductImage {
   @@index([productId, sortOrder])
 }
 
+model StoredImage {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  contentType String
+  bytes       Bytes
+  createdAt   DateTime @default(now())
+}
+
 model Cart {
   id        String     @id @default(cuid())
   token     String     @unique

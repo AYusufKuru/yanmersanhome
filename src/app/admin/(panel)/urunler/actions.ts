@@ -60,6 +60,13 @@ async function newImages(
     images.push({ url: imagePath, alt: alt || "Ürün görseli" });
   }
 
+  for (const value of formData.getAll("uploadedUrl")) {
+    const url = String(value).trim();
+    if (url && isLocalImagePath(url)) {
+      images.push({ url, alt: alt || "Ürün görseli" });
+    }
+  }
+
   const files = formData
     .getAll("images")
     .filter((item): item is File => item instanceof File && item.size > 0);
@@ -74,6 +81,26 @@ async function newImages(
   }
 
   return { images };
+}
+
+export async function storeAdminImage(
+  formData: FormData,
+): Promise<{ url?: string; error?: string }> {
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Görsel seçilmedi." };
+  }
+  const saved = await saveUpload(file);
+  if ("error" in saved) {
+    return saved;
+  }
+  return { url: saved.url };
+}
+
+export async function discardAdminImages(urls: string[]) {
+  await requireAdmin();
+  await removeStoredImages(urls.filter((url) => url.startsWith("/uploads/")));
 }
 
 export async function createProduct(

@@ -19,8 +19,8 @@ export default async function Home() {
   return (
     <>
       <HeroSlider slides={heroSlides} />
+      <Assurance />
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-12">
-        <Assurance />
         <section className="surface-panel rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
           <div className="max-w-xl">
             <p className="text-sm tracking-[0.18em] text-coffee uppercase">

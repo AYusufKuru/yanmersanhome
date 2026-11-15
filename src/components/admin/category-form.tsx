@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { FormState } from "@/app/admin/(panel)/kategoriler/actions";
+import { shrinkFormFiles } from "@/components/admin/shrink-image";
 
 const inputClass =
   "mt-2 h-12 w-full rounded-2xl border border-line bg-card px-4 text-base text-espresso outline-none";
@@ -31,9 +32,30 @@ export function CategoryForm({
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const [preparing, setPreparing] = useState(false);
+  const [prepareError, setPrepareError] = useState<string | null>(null);
+  const message = prepareError ?? state.error;
+  const busy = pending || preparing;
 
   return (
-    <form action={formAction} className="mt-8 flex flex-col gap-4">
+    <form
+      action={formAction}
+      className="mt-8 flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        setPrepareError(null);
+        setPreparing(true);
+        void shrinkFormFiles(formData, "imageFile").then((total) => {
+          setPreparing(false);
+          if (total > 3_500_000) {
+            setPrepareError("Görsel çok büyük. Daha küçük bir dosya deneyin.");
+            return;
+          }
+          formAction(formData);
+        });
+      }}
+    >
       <label className="text-sm text-espresso">
         Ad
         <input
@@ -119,17 +141,17 @@ export function CategoryForm({
           className="mt-2 min-h-24 w-full rounded-2xl border border-line bg-card px-4 py-3 text-base text-espresso outline-none"
         />
       </label>
-      {state.error ? (
+      {message ? (
         <p role="alert" className="text-sm text-danger">
-          {state.error}
+          {message}
         </p>
       ) : null}
       <button
         type="submit"
-        disabled={pending}
+        disabled={busy}
         className="inline-flex h-12 items-center justify-center rounded-full bg-coffee px-6 text-sm text-background disabled:opacity-60"
       >
-        {pending ? "Kaydediliyor" : submitLabel}
+        {busy ? "Kaydediliyor" : submitLabel}
       </button>
     </form>
   );

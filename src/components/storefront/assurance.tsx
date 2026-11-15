@@ -1,43 +1,33 @@
 import {
-  MaterialIcon,
+  GuaranteeIcon,
   PackageIcon,
+  ShieldIcon,
   ShippingIcon,
 } from "@/components/storefront/icons";
 
 const points = [
-  {
-    title: "Seçilmiş malzeme",
-    text: "Taş, ahşap ve keten. Gösteriş için değil, elde kalması için.",
-    Icon: MaterialIcon,
-  },
-  {
-    title: "Özenli paket",
-    text: "Kırılgan parçalar ayrı sarılır, evinize dağılmadan ulaşır.",
-    Icon: PackageIcon,
-  },
-  {
-    title: "Türkiye’ye gönderim",
-    text: "Parçalar özenle paketlenir ve Türkiye içine yola çıkar.",
-    Icon: ShippingIcon,
-  },
+  { title: "Güvenli ödeme", Icon: ShieldIcon },
+  { title: "Ücretsiz kargo", Icon: ShippingIcon },
+  { title: "Ömür boyu garanti", Icon: GuaranteeIcon },
+  { title: "Özenli paket", Icon: PackageIcon },
 ];
 
 export function Assurance() {
   return (
-    <section className="surface-panel rounded-[2rem] px-6 py-10 sm:px-10 sm:py-12">
-      <div className="grid gap-10 md:grid-cols-3 md:gap-12">
+    <section className="border-y border-line bg-card" aria-label="Güvence">
+      <ul className="mx-auto flex max-w-7xl flex-nowrap items-center justify-between gap-1 px-2 py-2.5 sm:gap-6 sm:px-6 sm:py-3">
         {points.map((point) => (
-          <div key={point.title} className="text-center">
-            <h2 className="font-display text-2xl text-espresso">
+          <li
+            key={point.title}
+            className="flex min-w-0 items-center gap-1 text-espresso sm:gap-2"
+          >
+            <point.Icon className="h-3.5 w-3.5 shrink-0 text-coffee sm:h-5 sm:w-5" />
+            <span className="text-[clamp(0.5rem,2.15vw,0.75rem)] tracking-[0.02em] whitespace-nowrap uppercase sm:text-xs sm:tracking-[0.14em]">
               {point.title}
-            </h2>
-            <p className="mt-3 text-base leading-7 text-espresso/80">
-              {point.text}
-            </p>
-            <point.Icon className="mx-auto mt-5 h-8 w-8 text-coffee" />
-          </div>
+            </span>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }
