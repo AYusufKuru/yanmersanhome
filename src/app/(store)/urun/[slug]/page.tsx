@@ -134,35 +134,35 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div className="aspect-[4/5] rounded-3xl bg-cream" />
           )}
         </div>
-        <div className="lg:pt-6">
-          <nav aria-label="Konum" className="text-sm text-muted">
-            <Link href="/" className="hover:text-coffee">
+        <div className="rounded-[2rem] bg-card/62 p-6 sm:p-8 lg:p-10">
+          <nav aria-label="Konum" className="text-sm text-espresso/70">
+            <Link href="/" className="hover:text-espresso">
               Ana sayfa
             </Link>
             <span aria-hidden="true"> / </span>
             <Link
               href={`/kategori/${product.categorySlug}`}
-              className="hover:text-coffee"
+              className="hover:text-espresso"
             >
               {product.categoryName}
             </Link>
           </nav>
-          <h1 className="font-display mt-3 text-4xl leading-tight text-espresso sm:text-5xl">
+          <h1 className="font-display mt-4 text-4xl leading-tight text-espresso sm:text-5xl">
             {product.name}
           </h1>
-          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 text-lg text-espresso">
+          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 text-xl text-espresso">
             <span>{formatPrice(product.price)}</span>
             {compare ? (
-              <span className="text-base text-muted line-through">
+              <span className="text-base text-espresso/50 line-through">
                 {formatPrice(compare)}
               </span>
             ) : null}
           </p>
-          <p className="mt-3 text-sm text-muted">
+          <p className="mt-3 text-base text-espresso/80">
             {product.stock > 0 ? "Stokta" : "Şu an stokta yok"}
           </p>
           {text ? (
-            <p className="mt-6 max-w-md text-base leading-7 whitespace-pre-line text-muted">
+            <p className="mt-6 max-w-md text-lg leading-8 whitespace-pre-line text-espresso/80">
               {text}
             </p>
           ) : null}
@@ -174,9 +174,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
       {related.length > 0 ? (
-        <section className="mt-16">
-          <h2 className="font-display text-2xl text-espresso">Aynı bölümden</h2>
-          <div className="mt-6">
+        <section className="surface-panel mt-8 rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
+          <h2 className="font-display text-3xl text-espresso">Aynı bölümden</h2>
+          <div className="mt-10">
             <ProductGrid products={related} />
           </div>
         </section>

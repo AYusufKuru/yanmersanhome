@@ -79,8 +79,8 @@ export function HeroSlider({ slides }: HeroSliderProps) {
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-espresso/80 via-espresso/25 to-espresso/10" />
-          <div className="relative flex h-full items-end px-5 pb-24 sm:px-8 lg:px-16">
-            <div className="max-w-xl text-background">
+          <div className="pointer-events-none relative z-20 flex h-full items-end px-5 pb-24 sm:px-8 lg:px-16">
+            <div className="pointer-events-auto max-w-xl text-background">
               <p className="text-xs tracking-[0.22em] text-cream uppercase">
                 {slide.eyebrow}
               </p>
@@ -94,50 +94,48 @@ export function HeroSlider({ slides }: HeroSliderProps) {
                 href={`/kategori/${slide.category}`}
                 className="mt-6 inline-flex h-12 items-center rounded-full bg-background px-6 text-sm text-espresso"
               >
-                Bölümü gör
+                Daha fazlasını keşfet
               </Link>
             </div>
           </div>
         </div>
       ))}
 
-      <div className="absolute inset-x-0 bottom-3 flex items-center justify-between px-2 sm:px-4">
-        <button
-          type="button"
-          aria-label="Önceki slayt"
-          onClick={() => go(index - 1)}
-          className="grid h-11 w-11 place-items-center rounded-full bg-background/85 text-xl text-espresso"
-        >
-          ‹
-        </button>
-        <div className="flex items-center">
-          {slides.map((slide, slideIndex) => (
-            <button
-              key={slide.category}
-              type="button"
-              aria-label={`${slide.eyebrow} slaydı`}
-              aria-current={slideIndex === index ? "true" : undefined}
-              onClick={() => go(slideIndex)}
-              className="grid h-11 w-8 place-items-center"
-            >
-              <span
-                className={`block h-1.5 rounded-full ${
-                  slideIndex === index
-                    ? "w-6 bg-background"
-                    : "w-3 bg-background/50"
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          aria-label="Sonraki slayt"
-          onClick={() => go(index + 1)}
-          className="grid h-11 w-11 place-items-center rounded-full bg-background/85 text-xl text-espresso"
-        >
-          ›
-        </button>
+      <button
+        type="button"
+        aria-label="Önceki slayt"
+        onClick={() => go(index - 1)}
+        className="group absolute inset-y-0 left-0 z-10 w-[22%] cursor-pointer"
+      >
+        <span className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 motion-reduce:transition-none" />
+      </button>
+      <button
+        type="button"
+        aria-label="Sonraki slayt"
+        onClick={() => go(index + 1)}
+        className="group absolute inset-y-0 right-0 z-10 w-[22%] cursor-pointer"
+      >
+        <span className="absolute inset-0 bg-gradient-to-l from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 motion-reduce:transition-none" />
+      </button>
+      <div className="absolute inset-x-0 bottom-3 z-20 flex items-center justify-center">
+        {slides.map((slide, slideIndex) => (
+          <button
+            key={slide.category}
+            type="button"
+            aria-label={`${slide.eyebrow} slaydı`}
+            aria-current={slideIndex === index ? "true" : undefined}
+            onClick={() => go(slideIndex)}
+            className="grid h-11 w-8 place-items-center"
+          >
+            <span
+              className={`block h-1.5 rounded-full ${
+                slideIndex === index
+                  ? "w-6 bg-background"
+                  : "w-3 bg-background/50"
+              }`}
+            />
+          </button>
+        ))}
       </div>
     </section>
   );

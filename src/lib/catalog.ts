@@ -111,7 +111,18 @@ export async function listRootCategories(): Promise<StoreCategory[]> {
   });
 }
 
-export async function mixedActiveProducts() {
+function pickRandom<T>(items: T[], count: number) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    const current = copy[index];
+    copy[index] = copy[swap] as T;
+    copy[swap] = current as T;
+  }
+  return copy.slice(0, count);
+}
+
+async function productsByRoot() {
   const [roots, rows, nodes] = await Promise.all([
     listRootCategories(),
     prisma.product.findMany({
@@ -123,7 +134,6 @@ export async function mixedActiveProducts() {
       select: { id: true, parentId: true, slug: true },
     }),
   ]);
-  const products = rows.map(toProduct);
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const categoryOf = new Map(rows.map((row) => [row.slug, row.categoryId]));
 
@@ -144,17 +154,19 @@ export async function mixedActiveProducts() {
   const groups = new Map(
     roots.map((root) => [root.slug, [] as StoreProduct[]]),
   );
-  for (const product of products) {
+  for (const product of rows.map(toProduct)) {
     const categoryId = categoryOf.get(product.slug);
     if (!categoryId) {
       continue;
     }
-    const bucket = groups.get(rootSlug(categoryId));
-    if (bucket && bucket.length < perCategory) {
-      bucket.push(product);
-    }
+    groups.get(rootSlug(categoryId))?.push(product);
   }
 
+  return { roots, groups };
+}
+
+export async function mixedActiveProducts() {
+  const { roots, groups } = await productsByRoot();
   const mixed: StoreProduct[] = [];
   for (let index = 0; index < perCategory; index += 1) {
     for (const root of roots) {
@@ -165,6 +177,17 @@ export async function mixedActiveProducts() {
     }
   }
   return mixed;
+}
+
+export async function homeCategoryRows() {
+  const { roots, groups } = await productsByRoot();
+  return roots.flatMap((root) => {
+    const products = pickRandom(groups.get(root.slug) ?? [], perCategory);
+    if (products.length === 0) {
+      return [];
+    }
+    return [{ slug: root.slug, name: root.name, products }];
+  });
 }
 
 export async function getStoreCategory(slug: string) {

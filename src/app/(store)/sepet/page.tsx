@@ -13,8 +13,10 @@ export default async function CartPage() {
   const cart = await getCartView();
 
   return (
-    <section className="mx-auto max-w-xl px-4 py-12 sm:px-6 sm:py-16">
-      <CartPanel cart={cart} idPrefix="sayfa" />
-    </section>
+    <>
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        <CartPanel cart={cart} idPrefix="sayfa" variant="page" />
+      </section>
+    </>
   );
 }

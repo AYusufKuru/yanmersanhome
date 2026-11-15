@@ -43,7 +43,7 @@ export default async function MemberOrderPage({
             Test ödemesine geç
           </Link>
         ) : null}
-        <Link href="/hesap/siparisler" className="text-sm text-coffee">
+        <Link href="/hesap?bolum=siparisler" className="text-sm text-coffee">
           Siparişlere dön
         </Link>
       </div>

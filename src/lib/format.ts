@@ -1,3 +1,16 @@
+export function formatPersonName(value: string) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => {
+      const first = part.charAt(0).toLocaleUpperCase("tr-TR");
+      const rest = part.slice(1).toLocaleLowerCase("tr-TR");
+      return first + rest;
+    })
+    .join(" ");
+}
+
 export function formatDate(value: Date) {
   return new Intl.DateTimeFormat("tr-TR", {
     dateStyle: "medium",

@@ -118,11 +118,19 @@ export function CustomerLoginForm() {
   );
 }
 
-export function GuestLookupForm() {
+export function GuestLookupForm({ compact = false }: { compact?: boolean }) {
   const [state, action, pending] = useActionState(lookupGuestOrder, {});
+  const fieldClass = compact
+    ? "mt-1.5 h-10 w-full rounded-2xl border border-line bg-card px-4 text-base text-espresso outline-none"
+    : inputClass;
 
   return (
-    <form action={action} className="mt-4 grid gap-4">
+    <form
+      action={action}
+      className={
+        compact ? "mt-3 grid gap-3 sm:grid-cols-2" : "mt-4 grid gap-4"
+      }
+    >
       <Alert state={state} />
       <label className="text-sm text-espresso">
         Sipariş numarası
@@ -131,7 +139,7 @@ export function GuestLookupForm() {
           required
           autoComplete="off"
           placeholder="YM-00000000"
-          className={inputClass}
+          className={fieldClass}
         />
       </label>
       <label className="text-sm text-espresso">
@@ -141,10 +149,14 @@ export function GuestLookupForm() {
           type="email"
           required
           autoComplete="email"
-          className={inputClass}
+          className={fieldClass}
         />
       </label>
-      <button type="submit" disabled={pending} className={buttonClass}>
+      <button
+        type="submit"
+        disabled={pending}
+        className={compact ? `${buttonClass} sm:col-span-2 sm:w-fit` : buttonClass}
+      >
         {pending ? "Aranıyor" : "Siparişi aç"}
       </button>
     </form>

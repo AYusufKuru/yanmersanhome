@@ -9,7 +9,7 @@ import {
   submitCoupon,
   updateCartQuantity,
 } from "@/app/(store)/sepet/actions";
-import type { CartView } from "@/lib/cart-view";
+import type { CartView, CartViewLine } from "@/lib/cart-view";
 import { formatPrice } from "@/lib/format";
 
 function QuantityForm({
@@ -22,19 +22,19 @@ function QuantityForm({
   stock: number;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="inline-flex items-center rounded-full bg-background">
       <form action={updateCartQuantity}>
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="quantity" value={quantity - 1} />
         <button
           type="submit"
-          className="grid h-11 w-11 place-items-center rounded-full border border-line text-lg text-espresso"
+          className="grid h-10 w-10 place-items-center rounded-full text-lg text-espresso"
           aria-label="Adedi azalt"
         >
           −
         </button>
       </form>
-      <span className="min-w-6 text-center text-sm text-espresso">
+      <span className="min-w-5 text-center text-sm text-espresso">
         {quantity}
       </span>
       <form action={updateCartQuantity}>
@@ -43,7 +43,7 @@ function QuantityForm({
         <button
           type="submit"
           disabled={quantity >= stock}
-          className="grid h-11 w-11 place-items-center rounded-full border border-line text-lg text-espresso disabled:opacity-40"
+          className="grid h-10 w-10 place-items-center rounded-full text-lg text-espresso disabled:opacity-40"
           aria-label="Adedi artır"
         >
           +
@@ -53,7 +53,58 @@ function QuantityForm({
   );
 }
 
-export function CartPanel({
+function LineItem({ line }: { line: CartViewLine }) {
+  return (
+    <li className="flex gap-4 py-5">
+      <Link
+        href={`/urun/${line.slug}`}
+        className="relative h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-cream"
+      >
+        {line.image ? (
+          <Image
+            src={line.image}
+            alt={line.imageAlt}
+            fill
+            sizes="96px"
+            className="object-cover"
+          />
+        ) : null}
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex items-start justify-between gap-3">
+          <Link
+            href={`/urun/${line.slug}`}
+            className="font-display text-xl leading-snug text-espresso"
+          >
+            {line.name}
+          </Link>
+          <p className="shrink-0 text-sm text-espresso">
+            {formatPrice(line.lineTotal)}
+          </p>
+        </div>
+        <p className="mt-1 text-sm text-muted">{formatPrice(line.unitPrice)}</p>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+          <QuantityForm
+            productId={line.productId}
+            quantity={line.quantity}
+            stock={line.stock}
+          />
+          <form action={removeFromCart}>
+            <input type="hidden" name="productId" value={line.productId} />
+            <button
+              type="submit"
+              className="h-10 text-sm text-muted hover:text-espresso"
+            >
+              Kaldır
+            </button>
+          </form>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function Summary({
   cart,
   idPrefix,
 }: {
@@ -64,103 +115,12 @@ export function CartPanel({
     submitCoupon,
     {},
   );
-  const available = cart.lines.filter((line) => line.available);
-  const unavailable = cart.lines.filter((line) => !line.available);
-
-  if (cart.lines.length === 0) {
-    return (
-      <div>
-        <h2 className="font-display text-3xl text-espresso">Sepetiniz boş</h2>
-        <p className="mt-3 text-base leading-7 text-muted">
-          Beğendiğiniz parçalar burada toplanır.
-        </p>
-        <Link
-          href="/"
-          className="mt-6 inline-flex h-12 items-center rounded-full bg-coffee px-6 text-sm text-background"
-        >
-          Vitrine dön
-        </Link>
-      </div>
-    );
-  }
+  const canCheckout = cart.lines.some((line) => line.available);
 
   return (
-    <div>
-      <h2 className="font-display text-3xl text-espresso">Sepet</h2>
-      <ul className="mt-6 flex flex-col gap-4">
-        {available.map((line) => (
-          <li
-            key={line.productId}
-            className="flex gap-3 rounded-2xl border border-line bg-background p-3"
-          >
-            <Link
-              href={`/urun/${line.slug}`}
-              className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-cream"
-            >
-              {line.image ? (
-                <Image
-                  src={line.image}
-                  alt={line.imageAlt}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                />
-              ) : null}
-            </Link>
-            <div className="min-w-0 flex-1">
-              <Link
-                href={`/urun/${line.slug}`}
-                className="font-display text-lg leading-snug text-espresso"
-              >
-                {line.name}
-              </Link>
-              <p className="mt-1 text-sm text-muted">
-                {formatPrice(line.unitPrice)}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <QuantityForm
-                  productId={line.productId}
-                  quantity={line.quantity}
-                  stock={line.stock}
-                />
-                <p className="text-sm text-espresso">
-                  {formatPrice(line.lineTotal)}
-                </p>
-              </div>
-              <form action={removeFromCart} className="mt-2">
-                <input type="hidden" name="productId" value={line.productId} />
-                <button type="submit" className="h-11 text-sm text-muted">
-                  Kaldır
-                </button>
-              </form>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      {unavailable.length > 0 ? (
-        <ul className="mt-4 flex flex-col gap-3">
-          {unavailable.map((line) => (
-            <li
-              key={line.productId}
-              className="rounded-2xl border border-line px-4 py-3"
-            >
-              <p className="text-sm text-espresso">{line.name}</p>
-              <p className="mt-1 text-sm text-muted">
-                Bu parça artık yayında değil veya stokta yok.
-              </p>
-              <form action={removeFromCart}>
-                <input type="hidden" name="productId" value={line.productId} />
-                <button type="submit" className="mt-1 h-11 text-sm text-muted">
-                  Kaldır
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <form action={couponAction} className="mt-8">
+    <div className="rounded-3xl bg-card p-5 sm:p-6">
+      <p className="font-display text-2xl text-espresso">Özet</p>
+      <form action={couponAction} className="mt-5">
         <label htmlFor={`${idPrefix}-kupon`} className="text-sm text-espresso">
           Kupon kodu
         </label>
@@ -170,12 +130,13 @@ export function CartPanel({
             name="code"
             defaultValue={cart.couponCode ?? ""}
             autoComplete="off"
-            className="h-12 min-w-0 flex-1 rounded-full border border-line bg-card px-4 text-base text-espresso uppercase outline-none"
+            className="h-11 min-w-0 flex-1 rounded-full bg-background px-4 text-sm text-espresso uppercase outline-none placeholder:text-muted"
+            placeholder="Kod"
           />
           <button
             type="submit"
             disabled={couponPending}
-            className="h-12 shrink-0 rounded-full bg-coffee px-4 text-sm text-background disabled:opacity-60"
+            className="h-11 shrink-0 rounded-full bg-espresso px-4 text-sm text-background disabled:opacity-60"
           >
             Uygula
           </button>
@@ -193,13 +154,13 @@ export function CartPanel({
       </form>
       {cart.couponCode ? (
         <form action={removeCoupon} className="mt-2">
-          <button type="submit" className="h-11 text-sm text-muted">
+          <button type="submit" className="h-10 text-sm text-muted">
             Kuponu kaldır ({cart.couponCode})
           </button>
         </form>
       ) : null}
 
-      <dl className="mt-6 space-y-2 text-sm">
+      <dl className="mt-6 space-y-3 text-sm">
         <div className="flex justify-between gap-4">
           <dt className="text-muted">Ara toplam</dt>
           <dd className="text-espresso">{formatPrice(cart.subtotal)}</dd>
@@ -212,15 +173,17 @@ export function CartPanel({
           <dt className="text-muted">Kargo</dt>
           <dd className="text-espresso">{formatPrice(cart.shippingFee)}</dd>
         </div>
-        <div className="flex justify-between gap-4 pt-2 text-base">
+        <div className="flex items-baseline justify-between gap-4 border-t border-line pt-4">
           <dt className="text-espresso">Toplam</dt>
-          <dd className="text-espresso">{formatPrice(cart.total)}</dd>
+          <dd className="font-display text-3xl text-espresso">
+            {formatPrice(cart.total)}
+          </dd>
         </div>
       </dl>
-      {available.length > 0 ? (
+      {canCheckout ? (
         <Link
           href="/odeme"
-          className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-coffee px-5 text-sm text-background"
+          className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-coffee text-sm text-background"
         >
           Siparişi tamamla
         </Link>
@@ -228,6 +191,108 @@ export function CartPanel({
       <p className="mt-4 text-sm leading-6 text-muted">
         Tutarlar sunucuda, güncel ürün fiyatından hesaplanır.
       </p>
+    </div>
+  );
+}
+
+export function CartPanel({
+  cart,
+  idPrefix,
+  variant = "page",
+}: {
+  cart: CartView;
+  idPrefix: string;
+  variant?: "page" | "drawer";
+}) {
+  const available = cart.lines.filter((line) => line.available);
+  const unavailable = cart.lines.filter((line) => !line.available);
+  const Heading = variant === "page" ? "h1" : "h2";
+
+  if (cart.lines.length === 0) {
+    return (
+      <div className={variant === "page" ? "mx-auto max-w-lg py-16 text-center" : "py-4"}>
+        <p className="text-[11px] tracking-[0.18em] text-coffee uppercase">
+          Sepet
+        </p>
+        <Heading className="font-display mt-3 text-4xl text-espresso">
+          Sepetiniz boş
+        </Heading>
+        <p className="mt-3 text-base leading-7 text-muted">
+          Beğendiğiniz parçalar burada toplanır.
+        </p>
+        <Link
+          href="/"
+          className="mt-8 inline-flex h-12 items-center rounded-full bg-coffee px-6 text-sm text-background"
+        >
+          Vitrine dön
+        </Link>
+      </div>
+    );
+  }
+
+  const lines = (
+    <div className="rounded-3xl bg-card px-4 sm:px-6">
+      <ul className="divide-y divide-line">
+        {available.map((line) => (
+          <LineItem key={line.productId} line={line} />
+        ))}
+      </ul>
+      {unavailable.length > 0 ? (
+        <ul className="border-t border-line">
+          {unavailable.map((line) => (
+            <li key={line.productId} className="py-5">
+              <p className="font-display text-lg text-espresso">{line.name}</p>
+              <p className="mt-1 text-sm text-muted">
+                Bu parça artık yayında değil veya stokta yok.
+              </p>
+              <form action={removeFromCart}>
+                <input type="hidden" name="productId" value={line.productId} />
+                <button
+                  type="submit"
+                  className="mt-2 h-10 text-sm text-muted hover:text-espresso"
+                >
+                  Kaldır
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+
+  const heading = (
+    <div className={variant === "drawer" ? "pr-12" : undefined}>
+      <p className="text-[11px] tracking-[0.18em] text-coffee uppercase">
+        {cart.count} parça
+      </p>
+      <Heading className="font-display mt-2 text-4xl text-espresso">
+        Sepet
+      </Heading>
+    </div>
+  );
+
+  if (variant === "drawer") {
+    return (
+      <div>
+        {heading}
+        <div className="mt-5">{lines}</div>
+        <div className="mt-5">
+          <Summary cart={cart} idPrefix={idPrefix} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
+      <div>
+        {heading}
+        <div className="mt-8">{lines}</div>
+      </div>
+      <aside className="mt-8 lg:sticky lg:top-28 lg:mt-0">
+        <Summary cart={cart} idPrefix={idPrefix} />
+      </aside>
     </div>
   );
 }

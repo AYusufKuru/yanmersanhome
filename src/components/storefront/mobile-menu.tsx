@@ -67,7 +67,7 @@ export function MobileMenu({ categories, open, onClose }: MobileMenuProps) {
             name="q"
             type="search"
             placeholder="Ürün veya malzeme ara"
-            className="h-12 w-full rounded-full border border-line bg-card px-5 text-base text-espresso outline-none placeholder:text-muted"
+            className="h-12 w-full rounded-full bg-cream px-5 text-base text-espresso outline-none placeholder:text-muted"
           />
         </form>
 

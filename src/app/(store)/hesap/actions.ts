@@ -217,7 +217,7 @@ export async function createAddress(
   }
 
   await rememberAddress(customer.id, parsed.data);
-  revalidatePath("/hesap/adresler");
+  revalidatePath("/hesap");
   revalidatePath("/odeme");
   return { saved: true };
 }
@@ -230,7 +230,7 @@ export async function deleteAddress(formData: FormData) {
       where: { id, userId: customer.id },
     });
   }
-  revalidatePath("/hesap/adresler");
+  revalidatePath("/hesap");
   revalidatePath("/odeme");
 }
 

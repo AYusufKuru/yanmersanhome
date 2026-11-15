@@ -39,7 +39,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -60,31 +60,33 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           ],
         }}
       />
-      <nav aria-label="Konum" className="text-sm text-muted">
-        <Link href="/" className="hover:text-coffee">
-          Ana sayfa
-        </Link>
-      </nav>
-      <p className="mt-4 text-xs tracking-[0.18em] text-coffee uppercase">
-        {categoryLabel(page.category.name)}
-      </p>
-      <h1 className="font-display mt-3 text-4xl text-espresso sm:text-5xl">
-        {page.category.name}
-      </h1>
-      {page.category.description ? (
-        <p className="mt-3 max-w-lg text-base leading-7 text-muted">
-          {page.category.description}
+      <div className="surface-panel rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
+        <nav aria-label="Konum" className="text-sm text-espresso/70">
+          <Link href="/" className="hover:text-espresso">
+            Ana sayfa
+          </Link>
+        </nav>
+        <p className="mt-5 text-sm tracking-[0.18em] text-coffee uppercase">
+          {categoryLabel(page.category.name)}
         </p>
-      ) : null}
-      {page.products.length > 0 ? (
-        <div className="mt-10">
-          <ProductGrid products={page.products} />
-        </div>
-      ) : (
-        <p className="mt-10 text-base text-muted">
-          Bu bölümde henüz yayındaki ürün yok.
-        </p>
-      )}
+        <h1 className="font-display mt-3 text-4xl text-espresso sm:text-5xl">
+          {page.category.name}
+        </h1>
+        {page.category.description ? (
+          <p className="mt-4 max-w-lg text-lg leading-8 text-espresso/80">
+            {page.category.description}
+          </p>
+        ) : null}
+        {page.products.length > 0 ? (
+          <div className="mt-12">
+            <ProductGrid products={page.products} />
+          </div>
+        ) : (
+          <p className="mt-12 text-lg text-espresso/80">
+            Bu bölümde henüz yayındaki ürün yok.
+          </p>
+        )}
+      </div>
     </section>
   );
 }
