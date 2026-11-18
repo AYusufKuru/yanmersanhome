@@ -6,7 +6,6 @@ import {
   updateCategory,
 } from "@/app/admin/(panel)/kategoriler/actions";
 import { CategoryForm } from "@/components/admin/category-form";
-import { DeleteButton } from "@/components/admin/delete-button";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -62,6 +61,8 @@ export default async function EditCategoryPage({
       <CategoryForm
         action={updateCategory.bind(null, category.id)}
         submitLabel="Değişiklikleri kaydet"
+        purpose="edit"
+        deleteAction={deleteCategory.bind(null, category.id)}
         parents={categories
           .filter((item) => !blocked.has(item.id))
           .map((item) => ({ id: item.id, name: item.name }))}
@@ -75,10 +76,6 @@ export default async function EditCategoryPage({
           seoDescription: category.seoDescription ?? "",
           image: category.image ?? "",
         }}
-      />
-      <DeleteButton
-        action={deleteCategory.bind(null, category.id)}
-        label="Kategoriyi sil"
       />
     </section>
   );

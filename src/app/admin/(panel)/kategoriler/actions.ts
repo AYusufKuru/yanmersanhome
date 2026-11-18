@@ -139,7 +139,10 @@ export async function createCategory(
   }
 
   revalidatePath("/admin/kategoriler");
-  redirect("/admin/kategoriler");
+  revalidatePath("/", "layout");
+  redirect(
+    `/admin/kategoriler?bildirim=kategori-eklendi&iz=${crypto.randomUUID()}`,
+  );
 }
 
 export async function updateCategory(
@@ -198,7 +201,10 @@ export async function updateCategory(
   }
 
   revalidatePath("/admin/kategoriler");
-  redirect("/admin/kategoriler");
+  revalidatePath("/", "layout");
+  redirect(
+    `/admin/kategoriler/${id}?bildirim=kategori-guncellendi&iz=${crypto.randomUUID()}`,
+  );
 }
 
 export async function deleteCategory(id: string): Promise<FormState> {
@@ -231,5 +237,8 @@ export async function deleteCategory(id: string): Promise<FormState> {
   }
 
   revalidatePath("/admin/kategoriler");
-  redirect("/admin/kategoriler");
+  revalidatePath("/", "layout");
+  redirect(
+    `/admin/kategoriler?bildirim=kategori-silindi&iz=${crypto.randomUUID()}`,
+  );
 }

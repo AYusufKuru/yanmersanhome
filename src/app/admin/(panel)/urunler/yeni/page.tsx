@@ -29,6 +29,7 @@ export default async function NewProductPage() {
         action={createProduct}
         categories={categories}
         submitLabel="Ürünü kaydet"
+        purpose="create"
         values={{
           name: "",
           slug: "",
@@ -38,7 +39,7 @@ export default async function NewProductPage() {
           compareAtPrice: "",
           sku: "",
           stock: 0,
-          status: "DRAFT",
+          status: "ACTIVE",
           featured: false,
           categoryId: "",
           seoTitle: "",

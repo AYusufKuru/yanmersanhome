@@ -5,7 +5,6 @@ import {
   deleteProduct,
   updateProduct,
 } from "@/app/admin/(panel)/urunler/actions";
-import { DeleteButton } from "@/components/admin/delete-button";
 import { ProductForm } from "@/components/admin/product-form";
 import { moneyInput } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth";
@@ -51,6 +50,8 @@ export default async function EditProductPage({
         action={updateProduct.bind(null, product.id)}
         categories={categories}
         submitLabel="Değişiklikleri kaydet"
+        purpose="edit"
+        deleteAction={deleteProduct.bind(null, product.id)}
         values={{
           name: product.name,
           slug: product.slug,
@@ -73,10 +74,6 @@ export default async function EditProductPage({
             alt: image.alt,
           })),
         }}
-      />
-      <DeleteButton
-        action={deleteProduct.bind(null, product.id)}
-        label="Ürünü sil"
       />
     </section>
   );

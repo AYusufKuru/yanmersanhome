@@ -31,6 +31,7 @@ export default async function NewCategoryPage() {
         action={createCategory}
         parents={parents}
         submitLabel="Kategoriyi kaydet"
+        purpose="create"
         values={{
           name: "",
           slug: "",

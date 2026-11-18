@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { logout } from "@/app/admin/actions";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminToastProvider } from "@/components/admin/admin-toast";
 import { requireAdmin } from "@/lib/auth";
 
 export const instant = false;
@@ -14,7 +15,7 @@ export default async function AdminPanelLayout({
   const admin = await requireAdmin();
 
   return (
-    <>
+    <AdminToastProvider>
       <header className="sticky top-0 z-30 border-b border-line bg-background">
         <div className="mx-auto flex max-w-5xl flex-col gap-2 px-4 py-3 sm:px-6 lg:h-16 lg:flex-row lg:items-center lg:gap-6 lg:py-0">
           <div className="flex items-center gap-3">
@@ -55,6 +56,6 @@ export default async function AdminPanelLayout({
         </div>
       </header>
       {children}
-    </>
+    </AdminToastProvider>
   );
 }

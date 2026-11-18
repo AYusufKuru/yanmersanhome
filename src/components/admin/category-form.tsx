@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import type { FormState } from "@/app/admin/(panel)/kategoriler/actions";
+import { useAdminToast } from "@/components/admin/admin-toast";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { shrinkFormFiles } from "@/components/admin/shrink-image";
 
 const inputClass =
@@ -23,42 +25,121 @@ export type CategoryFormValues = {
 
 type ParentOption = { id: string; name: string };
 
+type CategoryAction = (
+  state: FormState,
+  formData: FormData,
+) => Promise<FormState>;
+
+async function unusedDelete(): Promise<FormState> {
+  return {};
+}
+
 export function CategoryForm({
   action,
   values,
   parents,
   submitLabel,
+  purpose,
+  deleteAction,
 }: {
-  action: (state: FormState, formData: FormData) => Promise<FormState>;
+  action: CategoryAction;
   values: CategoryFormValues;
   parents: ParentOption[];
   submitLabel: string;
+  purpose: "create" | "edit";
+  deleteAction?: CategoryAction;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const [deleteState, deleteFormAction, deletePending] = useActionState(
+    deleteAction ?? unusedDelete,
+    {},
+  );
   const [preparing, setPreparing] = useState(false);
   const [prepareError, setPrepareError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState("");
   const [previewOk, setPreviewOk] = useState(Boolean(values.image));
-  const message = prepareError ?? state.error;
-  const busy = pending || preparing;
+  const [pickedPreview, setPickedPreview] = useState<string | null>(null);
+  const pickedRef = useRef<string | null>(null);
+  const [confirm, setConfirm] = useState<"save" | "delete" | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const toasted = useRef<string | null>(null);
+  const notify = useAdminToast();
+  const message = prepareError ?? state.error ?? deleteState.error;
+  const busy = pending || preparing || deletePending;
+
+  useEffect(() => {
+    if (!message || toasted.current === message) {
+      return;
+    }
+    toasted.current = message;
+    notify(message, "err");
+  }, [message, notify]);
+
+  useEffect(() => {
+    return () => {
+      if (pickedRef.current) {
+        URL.revokeObjectURL(pickedRef.current);
+      }
+    };
+  }, []);
+
+  function showPickedImage(file: File | undefined) {
+    if (pickedRef.current) {
+      URL.revokeObjectURL(pickedRef.current);
+    }
+    const url = file ? URL.createObjectURL(file) : null;
+    pickedRef.current = url;
+    setPickedPreview(url);
+  }
+
+  function beginSave() {
+    const form = formRef.current;
+    if (!form) {
+      return;
+    }
+    const formData = new FormData(form);
+    setConfirm(null);
+    setPrepareError(null);
+    setPreparing(true);
+    void shrinkFormFiles(formData, "imageFile").then((total) => {
+      setPreparing(false);
+      if (total > 3_500_000) {
+        setPrepareError("Görsel çok büyük. Daha küçük bir dosya deneyin.");
+        return;
+      }
+      startTransition(() => {
+        formAction(formData);
+      });
+    });
+  }
+
+  function beginDelete() {
+    setConfirm(null);
+    startTransition(() => {
+      deleteFormAction(new FormData());
+    });
+  }
+
+  const saveCopy =
+    purpose === "create"
+      ? {
+          title: "Kategori eklensin mi?",
+          text: "Onaylarsan kategori kaydı tamamlanır.",
+          confirmLabel: "Ekle",
+        }
+      : {
+          title: "Değişiklikler kaydedilsin mi?",
+          text: "Onaylarsan bu kategorideki değişiklikler kaydedilir.",
+          confirmLabel: "Kaydet",
+        };
 
   return (
     <form
+      ref={formRef}
       action={formAction}
       className="mt-6 flex flex-col gap-6 rounded-3xl border border-line bg-card p-5 shadow-[0_16px_40px_-30px_rgba(74,52,38,0.85)] sm:p-7"
       onSubmit={(event) => {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        setPrepareError(null);
-        setPreparing(true);
-        void shrinkFormFiles(formData, "imageFile").then((total) => {
-          setPreparing(false);
-          if (total > 3_500_000) {
-            setPrepareError("Görsel çok büyük. Daha küçük bir dosya deneyin.");
-            return;
-          }
-          formAction(formData);
-        });
+        setConfirm("save");
       }}
     >
       <div className="grid items-start gap-6 lg:grid-cols-2">
@@ -124,7 +205,14 @@ export function CategoryForm({
             <p className="text-xs tracking-[0.16em] text-coffee uppercase">
               Görsel
             </p>
-            {values.image && previewOk ? (
+            {pickedPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={pickedPreview}
+                alt=""
+                className="h-24 w-24 rounded-2xl object-cover"
+              />
+            ) : values.image && previewOk ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={values.image}
@@ -136,9 +224,7 @@ export function CategoryForm({
             <label className="text-sm text-espresso">
               Görsel yükle
               <span className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-coffee/40 bg-background px-4 py-5 text-center">
-                <span className="text-sm text-espresso">
-                  {fileName || "Dosya seç"}
-                </span>
+                <span className="text-sm text-espresso">Dosya seç</span>
                 <span className="text-sm text-muted">JPEG, PNG veya WebP</span>
                 <input
                   name="imageFile"
@@ -146,7 +232,7 @@ export function CategoryForm({
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
                   onChange={(event) =>
-                    setFileName(event.target.files?.[0]?.name ?? "")
+                    showPickedImage(event.target.files?.[0])
                   }
                 />
               </span>
@@ -189,15 +275,51 @@ export function CategoryForm({
           {message}
         </p>
       ) : null}
-      <div className="border-t border-line pt-5">
+      <div
+        className={`flex flex-wrap items-center gap-3 border-t border-line pt-5 ${
+          deleteAction ? "justify-between" : "justify-end"
+        }`}
+      >
+        {deleteAction ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setConfirm("delete")}
+            className="inline-flex h-12 items-center justify-center rounded-full bg-danger px-6 text-sm text-background disabled:opacity-60"
+          >
+            {deletePending ? "Siliniyor" : "Kategoriyi sil"}
+          </button>
+        ) : null}
         <button
           type="submit"
           disabled={busy}
           className="inline-flex h-12 items-center justify-center rounded-full bg-coffee px-6 text-sm text-background disabled:opacity-60"
         >
-          {busy ? "Kaydediliyor" : submitLabel}
+          {pending || preparing ? "Kaydediliyor" : submitLabel}
         </button>
       </div>
+      {confirm === "save" ? (
+        <ConfirmDialog
+          title={saveCopy.title}
+          text={saveCopy.text}
+          confirmLabel={saveCopy.confirmLabel}
+          tone="coffee"
+          pending={busy}
+          onCancel={() => setConfirm(null)}
+          onConfirm={beginSave}
+        />
+      ) : null}
+      {confirm === "delete" ? (
+        <ConfirmDialog
+          title="Kategori silinsin mi?"
+          text="Bu kategori panelden kaldırılır."
+          confirmLabel="Sil"
+          tone="danger"
+          pending={busy}
+          onCancel={() => setConfirm(null)}
+          onConfirm={beginDelete}
+        />
+      ) : null}
     </form>
   );
 }

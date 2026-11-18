@@ -165,7 +165,8 @@ export async function createProduct(
   }
 
   revalidatePath("/admin/urunler");
-  redirect("/admin/urunler");
+  revalidatePath("/", "layout");
+  redirect(`/admin/urunler?bildirim=eklendi&iz=${crypto.randomUUID()}`);
 }
 
 export async function updateProduct(
@@ -248,7 +249,10 @@ export async function updateProduct(
   }
 
   revalidatePath("/admin/urunler");
-  redirect(`/admin/urunler/${id}`);
+  revalidatePath("/", "layout");
+  redirect(
+    `/admin/urunler/${id}?bildirim=guncellendi&iz=${crypto.randomUUID()}`,
+  );
 }
 
 export async function deleteProduct(id: string): Promise<FormState> {
@@ -271,5 +275,6 @@ export async function deleteProduct(id: string): Promise<FormState> {
   }
 
   revalidatePath("/admin/urunler");
-  redirect("/admin/urunler");
+  revalidatePath("/", "layout");
+  redirect(`/admin/urunler?bildirim=silindi&iz=${crypto.randomUUID()}`);
 }
