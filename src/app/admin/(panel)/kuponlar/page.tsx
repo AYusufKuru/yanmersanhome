@@ -54,7 +54,7 @@ export default async function CouponsPage({ searchParams }: CouponsPageProps) {
             {coupons.map((coupon) => (
               <li
                 key={coupon.id}
-                className="rounded-2xl border border-line bg-card px-4 py-3"
+                className="rounded-2xl border border-line bg-card px-4 py-3 shadow-[0_12px_30px_-26px_rgba(74,52,38,0.9)]"
               >
                 <p className="text-base text-espresso">{coupon.code}</p>
                 <p className="mt-1 text-sm text-muted">

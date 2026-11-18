@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { prisma } from "@/lib/db";
 
 export type StoreCategory = {
@@ -179,7 +180,61 @@ export async function mixedActiveProducts() {
   return mixed;
 }
 
+export type HeroSlide = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  text: string;
+  image: string;
+  imageAlt: string;
+  href: string;
+};
+
+export async function heroSlides() {
+  await connection();
+  const products = await prisma.product.findMany({
+    where: {
+      status: "ACTIVE",
+      featured: true,
+      images: { some: {} },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 8,
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      summary: true,
+      category: { select: { name: true } },
+      images: {
+        orderBy: { sortOrder: "asc" },
+        take: 1,
+        select: { url: true, alt: true },
+      },
+    },
+  });
+
+  return products.flatMap((product) => {
+    const image = product.images[0];
+    if (!image) {
+      return [];
+    }
+    return [
+      {
+        id: product.id,
+        eyebrow: product.category.name,
+        title: product.name,
+        text: product.summary,
+        image: image.url,
+        imageAlt: image.alt || product.name,
+        href: `/urun/${product.slug}`,
+      },
+    ];
+  });
+}
+
 export async function homeCategoryRows() {
+  await connection();
   const { roots, groups } = await productsByRoot();
   return roots.flatMap((root) => {
     const products = pickRandom(groups.get(root.slug) ?? [], perCategory);

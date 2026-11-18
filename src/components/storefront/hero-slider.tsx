@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type PointerEvent } from "react";
-import type { HeroSlide } from "@/data/hero";
+import type { HeroSlide } from "@/lib/catalog";
 
 type HeroSliderProps = {
   slides: HeroSlide[];
@@ -29,6 +29,10 @@ export function HeroSlider({ slides }: HeroSliderProps) {
 
   function go(next: number) {
     setIndex((next + count) % count);
+  }
+
+  if (count === 0) {
+    return null;
   }
 
   function onPointerUp(event: PointerEvent<HTMLElement>) {
@@ -61,7 +65,7 @@ export function HeroSlider({ slides }: HeroSliderProps) {
     >
       {slides.map((slide, slideIndex) => (
         <div
-          key={slide.category}
+          key={slide.id}
           aria-hidden={slideIndex !== index}
           className={`absolute inset-0 transition-opacity duration-700 ${
             slideIndex === index
@@ -91,7 +95,7 @@ export function HeroSlider({ slides }: HeroSliderProps) {
                 {slide.text}
               </p>
               <Link
-                href={`/kategori/${slide.category}`}
+                href={slide.href}
                 className="mt-6 inline-flex h-12 items-center rounded-full bg-background px-6 text-sm text-espresso"
               >
                 Daha fazlasını keşfet
@@ -120,7 +124,7 @@ export function HeroSlider({ slides }: HeroSliderProps) {
       <div className="absolute inset-x-0 bottom-3 z-20 flex items-center justify-center">
         {slides.map((slide, slideIndex) => (
           <button
-            key={slide.category}
+            key={slide.id}
             type="button"
             aria-label={`${slide.eyebrow} slaydı`}
             aria-current={slideIndex === index ? "true" : undefined}

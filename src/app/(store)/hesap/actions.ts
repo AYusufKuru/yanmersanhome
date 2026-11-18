@@ -43,6 +43,7 @@ export async function registerCustomer(
     email: formData.get("email"),
     phone: formData.get("phone"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
     return { error: accountIssue(parsed.error) };

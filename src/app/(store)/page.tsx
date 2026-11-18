@@ -3,8 +3,7 @@ import Link from "next/link";
 import { Assurance } from "@/components/storefront/assurance";
 import { HeroSlider } from "@/components/storefront/hero-slider";
 import { ProductCard } from "@/components/storefront/product-grid";
-import { heroSlides } from "@/data/hero";
-import { homeCategoryRows } from "@/lib/catalog";
+import { heroSlides, homeCategoryRows } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -14,11 +13,14 @@ export const metadata: Metadata = {
 export const instant = false;
 
 export default async function Home() {
-  const rows = await homeCategoryRows();
+  const [rows, slides] = await Promise.all([
+    homeCategoryRows(),
+    heroSlides(),
+  ]);
 
   return (
     <>
-      <HeroSlider slides={heroSlides} />
+      {slides.length > 0 ? <HeroSlider slides={slides} /> : null}
       <Assurance />
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-12">
         <section className="surface-panel rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">

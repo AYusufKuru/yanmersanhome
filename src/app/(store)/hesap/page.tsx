@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   AddressForm,
+  CustomerLoginForm,
   GuestLookupForm,
   PasswordForm,
   ProfileForm,
+  RegisterForm,
 } from "@/components/storefront/account-forms";
 import { AccountTabs, type AccountTab } from "@/components/storefront/account-tabs";
+import { GuestGate, type GuestTab } from "@/components/storefront/guest-gate";
 import { deleteAddress } from "@/app/(store)/hesap/actions";
 import { getCustomer, listAddresses } from "@/lib/account";
 import { prisma } from "@/lib/db";
@@ -26,6 +29,14 @@ function accountTab(value: string | string[] | undefined): AccountTab {
     return tab;
   }
   return "siparisler";
+}
+
+function guestTab(value: string | string[] | undefined): GuestTab {
+  const tab = Array.isArray(value) ? value[0] : value;
+  if (tab === "giris" || tab === "kayit") {
+    return tab;
+  }
+  return "misafir";
 }
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
@@ -167,36 +178,41 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </>
         ) : (
           <>
-            <h1 className="font-display mt-3 text-3xl text-espresso">
-              Siparişini izle
-            </h1>
-            <p className="mt-3 max-w-lg text-base leading-7 text-espresso/80">
-              Üye olmadan da sipariş izlenir. Üye siparişleri girişten sonra
-              listelenir.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href="/hesap/giris"
-                className="inline-flex h-12 items-center rounded-full bg-coffee px-5 text-sm text-background"
-              >
-                Giriş yap
-              </Link>
-              <Link
-                href="/hesap/kayit"
-                className="inline-flex h-12 items-center rounded-full border border-espresso/20 px-5 text-sm text-espresso"
-              >
-                Hesap aç
-              </Link>
-            </div>
-            <div className="mt-4 rounded-[1.5rem] bg-white/45 px-5 py-3 sm:px-6">
-              <h2 className="font-display text-xl text-espresso">
-                Misafir siparişi
-              </h2>
-              <p className="mt-2 text-base leading-6 text-espresso/80">
-                Sipariş numarası ve siparişte yazılan e-posta birlikte gerekir.
-              </p>
-              <GuestLookupForm compact />
-            </div>
+            <GuestGate
+              tab={guestTab(bolum)}
+              guest={
+                <>
+                  <h1 className="font-display text-2xl text-espresso">
+                    Misafir girişi
+                  </h1>
+                  <p className="mt-2 text-base leading-6 text-espresso/80">
+                    Sipariş numarası ve siparişte yazılan e-posta birlikte
+                    gerekir.
+                  </p>
+                  <GuestLookupForm compact />
+                </>
+              }
+              login={
+                <>
+                  <h1 className="font-display text-2xl text-espresso">
+                    Giriş yap
+                  </h1>
+                  <CustomerLoginForm />
+                </>
+              }
+              register={
+                <>
+                  <h1 className="font-display text-2xl text-espresso">
+                    Hesap aç
+                  </h1>
+                  <p className="mt-2 text-base leading-6 text-espresso/80">
+                    Şifre en az 8 karakter olmalı, bir harf ve bir rakam
+                    içermeli.
+                  </p>
+                  <RegisterForm />
+                </>
+              }
+            />
           </>
         )}
       </div>

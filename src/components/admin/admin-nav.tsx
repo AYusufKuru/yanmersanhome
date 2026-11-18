@@ -15,7 +15,7 @@ export function AdminNav() {
 
   return (
     <nav
-      className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6"
+      className="flex gap-1 overflow-x-auto lg:flex-1"
       aria-label="Yönetim"
     >
       {links.map((link) => {
@@ -26,8 +26,10 @@ export function AdminNav() {
             key={link.href}
             href={link.href}
             aria-current={active ? "page" : undefined}
-            className={`inline-flex h-11 shrink-0 items-center rounded-full px-4 text-sm ${
-              active ? "bg-coffee text-background" : "text-espresso"
+            className={`inline-flex h-9 shrink-0 items-center rounded-full px-3.5 text-sm transition ${
+              active
+                ? "bg-espresso text-background"
+                : "text-muted hover:bg-cream hover:text-espresso"
             }`}
           >
             {link.label}

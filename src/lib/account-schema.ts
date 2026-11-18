@@ -21,16 +21,27 @@ const phone = z
     error: "Telefon numarası geçersiz.",
   });
 
-export const registerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, { error: "Ad soyad en az 2 karakter olmalı." })
-    .max(80),
-  email,
-  phone,
-  password: passwordSchema,
-});
+export const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, { error: "Ad soyad en az 2 karakter olmalı." })
+      .max(80),
+    email,
+    phone,
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, { error: "Şifreyi yeniden yazın." }),
+  })
+  .superRefine((value, context) => {
+    if (value.password !== value.confirmPassword) {
+      context.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Şifreler aynı değil.",
+      });
+    }
+  });
 
 export const customerLoginSchema = z.object({
   email,

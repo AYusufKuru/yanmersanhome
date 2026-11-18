@@ -15,22 +15,44 @@ export default async function AdminPanelLayout({
 
   return (
     <>
-      <header className="border-b border-line">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:px-6">
-          <Link href="/admin" className="font-display text-xl text-espresso">
-            Yönetim
-          </Link>
-          <p className="ml-auto truncate text-sm text-muted">{admin.email}</p>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="inline-flex h-11 shrink-0 items-center rounded-full border border-line px-4 text-sm text-espresso"
-            >
-              Çıkış
-            </button>
-          </form>
+      <header className="sticky top-0 z-30 border-b border-line bg-background">
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-4 py-3 sm:px-6 lg:h-16 lg:flex-row lg:items-center lg:gap-6 lg:py-0">
+          <div className="flex items-center gap-3">
+            <Link href="/admin" className="flex items-baseline gap-2">
+              <span className="font-display text-lg text-espresso">
+                Yanmersanhome
+              </span>
+              <span className="text-[0.7rem] tracking-[0.16em] text-coffee uppercase">
+                Yönetim
+              </span>
+            </Link>
+            <div className="ml-auto flex items-center gap-2 lg:hidden">
+              <p className="max-w-36 truncate text-sm text-muted">
+                {admin.email}
+              </p>
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="inline-flex h-9 items-center rounded-full border border-line bg-card px-3 text-sm text-espresso"
+                >
+                  Çıkış
+                </button>
+              </form>
+            </div>
+          </div>
+          <AdminNav />
+          <div className="ml-auto hidden items-center gap-3 lg:flex">
+            <p className="max-w-52 truncate text-sm text-muted">{admin.email}</p>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-full border border-line bg-card px-3.5 text-sm text-espresso"
+              >
+                Çıkış
+              </button>
+            </form>
+          </div>
         </div>
-        <AdminNav />
       </header>
       {children}
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   changePassword,
   createAddress,
@@ -16,6 +16,95 @@ const inputClass =
 
 const buttonClass =
   "inline-flex h-12 items-center justify-center rounded-full bg-coffee px-5 text-sm text-background disabled:opacity-60";
+
+function EyeOpenIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path
+        d="M2.5 12S6.2 6.8 12 6.8 21.5 12 21.5 12 17.8 17.2 12 17.2 2.5 12 2.5 12Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="2.3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function EyeClosedIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path
+        d="M3.5 10.2c2.1 2.8 5 4.3 8.5 4.3s6.4-1.5 8.5-4.3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8.2 13.4 6.8 16.2M12 14.6v3M15.8 13.4l1.4 2.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function PasswordField({
+  label,
+  name,
+  autoComplete,
+}: {
+  label: string;
+  name: string;
+  autoComplete: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  const [filled, setFilled] = useState(false);
+
+  return (
+    <label className="min-w-0 text-sm text-espresso">
+      {label}
+      <span className="relative mt-2 block">
+        <input
+          name={name}
+          type={visible ? "text" : "password"}
+          required
+          autoComplete={autoComplete}
+          onChange={(event) => {
+            const hasValue = event.target.value.length > 0;
+            setFilled(hasValue);
+            if (!hasValue) {
+              setVisible(false);
+            }
+          }}
+          className={`h-12 w-full rounded-2xl border border-line bg-card pl-4 text-base text-espresso outline-none ${filled ? "pr-11" : "pr-4"}`}
+        />
+        {filled ? (
+          <button
+            type="button"
+            onClick={() => setVisible((value) => !value)}
+            aria-label={visible ? "Şifreyi gizle" : "Şifreyi göster"}
+            aria-pressed={visible}
+            className="absolute top-1/2 right-1 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-coffee/45"
+          >
+            {visible ? <EyeOpenIcon /> : <EyeClosedIcon />}
+          </button>
+        ) : null}
+      </span>
+    </label>
+  );
+}
 
 function Alert({ state }: { state: AccountState }) {
   if (state.error) {
@@ -35,7 +124,7 @@ export function RegisterForm() {
   const [state, action, pending] = useActionState(registerCustomer, {});
 
   return (
-    <form action={action} className="mt-8 grid gap-4">
+    <form action={action} className="mt-4 grid gap-4">
       <Alert state={state} />
       <label className="text-sm text-espresso">
         Ad soyad
@@ -67,16 +156,18 @@ export function RegisterForm() {
           className={inputClass}
         />
       </label>
-      <label className="text-sm text-espresso">
-        Şifre
-        <input
+      <div className="grid grid-cols-2 gap-3">
+        <PasswordField
+          label="Şifre"
           name="password"
-          type="password"
-          required
           autoComplete="new-password"
-          className={inputClass}
         />
-      </label>
+        <PasswordField
+          label="Şifre tekrar"
+          name="confirmPassword"
+          autoComplete="new-password"
+        />
+      </div>
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? "Açılıyor" : "Hesap aç"}
       </button>
@@ -88,7 +179,7 @@ export function CustomerLoginForm() {
   const [state, action, pending] = useActionState(loginCustomer, {});
 
   return (
-    <form action={action} className="mt-8 grid gap-4">
+    <form action={action} className="mt-4 grid gap-4">
       <Alert state={state} />
       <label className="text-sm text-espresso">
         E-posta
@@ -101,16 +192,11 @@ export function CustomerLoginForm() {
           className={inputClass}
         />
       </label>
-      <label className="text-sm text-espresso">
-        Şifre
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className={inputClass}
-        />
-      </label>
+      <PasswordField
+        label="Şifre"
+        name="password"
+        autoComplete="current-password"
+      />
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? "Giriliyor" : "Giriş yap"}
       </button>
@@ -155,7 +241,7 @@ export function GuestLookupForm({ compact = false }: { compact?: boolean }) {
       <button
         type="submit"
         disabled={pending}
-        className={compact ? `${buttonClass} sm:col-span-2 sm:w-fit` : buttonClass}
+        className={compact ? `${buttonClass} col-span-full w-full` : buttonClass}
       >
         {pending ? "Aranıyor" : "Siparişi aç"}
       </button>
@@ -202,36 +288,21 @@ export function PasswordForm() {
   return (
     <form action={action} className="grid gap-4">
       <Alert state={state} />
-      <label className="text-sm text-espresso">
-        Mevcut şifre
-        <input
-          name="currentPassword"
-          type="password"
-          required
-          autoComplete="current-password"
-          className={inputClass}
-        />
-      </label>
-      <label className="text-sm text-espresso">
-        Yeni şifre
-        <input
-          name="nextPassword"
-          type="password"
-          required
-          autoComplete="new-password"
-          className={inputClass}
-        />
-      </label>
-      <label className="text-sm text-espresso">
-        Yeni şifre, yeniden
-        <input
-          name="confirmPassword"
-          type="password"
-          required
-          autoComplete="new-password"
-          className={inputClass}
-        />
-      </label>
+      <PasswordField
+        label="Mevcut şifre"
+        name="currentPassword"
+        autoComplete="current-password"
+      />
+      <PasswordField
+        label="Yeni şifre"
+        name="nextPassword"
+        autoComplete="new-password"
+      />
+      <PasswordField
+        label="Yeni şifre, yeniden"
+        name="confirmPassword"
+        autoComplete="new-password"
+      />
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? "Kaydediliyor" : "Şifreyi değiştir"}
       </button>

@@ -79,7 +79,7 @@ export default async function AdminOrdersPage({
             <li key={order.id}>
               <Link
                 href={`/admin/siparisler/${order.id}`}
-                className="block rounded-2xl border border-line bg-card px-4 py-3"
+                className="block rounded-2xl border border-line bg-card px-4 py-3 shadow-[0_12px_30px_-26px_rgba(74,52,38,0.9)] transition hover:border-coffee/40"
               >
                 <span className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-espresso">{order.number}</span>

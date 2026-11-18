@@ -16,11 +16,15 @@ export default async function NewProductPage() {
   });
 
   return (
-    <section className="mx-auto w-full max-w-xl px-4 py-8 sm:px-6">
-      <Link href="/admin/urunler" className="text-sm text-coffee">
+    <section className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+      <Link
+        href="/admin/urunler"
+        className="inline-flex h-9 items-center gap-2 rounded-full border border-line bg-card px-3 text-sm text-espresso"
+      >
+        <span aria-hidden="true">←</span>
         Ürünlere dön
       </Link>
-      <h1 className="font-display mt-4 text-4xl text-espresso">Yeni ürün</h1>
+      <h1 className="font-display mt-5 text-4xl text-espresso">Yeni ürün</h1>
       <ProductForm
         action={createProduct}
         categories={categories}
