@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProductPhotos } from "@/components/storefront/product-photos";
+import { RatingSummary } from "@/components/storefront/rating-summary";
 import { categoryLabel, type StoreProduct } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
@@ -40,17 +41,25 @@ export function ProductCard({
         >
           {product.name}
         </h3>
+        <div className="mt-2">
+          <RatingSummary
+            ratingAverage={product.ratingAverage}
+            reviewCount={product.reviewCount}
+            questionCount={product.questionCount}
+          />
+        </div>
         <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-base">
-          <span className="text-espresso">{formatPrice(product.price)}</span>
-          {compare ? (
+          {product.stock > 0 ? (
+            <span className="text-espresso">{formatPrice(product.price)}</span>
+          ) : (
+            <span className="text-espresso/40">Stokta yok</span>
+          )}
+          {compare && product.stock > 0 ? (
             <span className="text-muted line-through">
               {formatPrice(compare)}
             </span>
           ) : null}
         </p>
-        {product.stock <= 0 ? (
-          <p className="mt-1 text-xs text-muted">Tükendi</p>
-        ) : null}
       </Link>
     </article>
   );

@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCart } from "@/components/storefront/add-to-cart";
+import { BackButton } from "@/components/storefront/back-button";
+import { ProductGallery } from "@/components/storefront/product-gallery";
 import { JsonLd } from "@/components/storefront/json-ld";
+import { ProductFeedback } from "@/components/storefront/product-feedback";
 import { ProductGrid } from "@/components/storefront/product-grid";
+import { RatingSummary } from "@/components/storefront/rating-summary";
 import { ViewContent } from "@/components/storefront/track-events";
+import { getCustomer } from "@/lib/account";
 import { getActiveProduct } from "@/lib/catalog";
+import { getProductConversation } from "@/lib/feedback";
 import { formatPrice } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 
@@ -44,12 +48,19 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const page = await getActiveProduct(slug);
+  const [page, customer] = await Promise.all([
+    getActiveProduct(slug),
+    getCustomer(),
+  ]);
   if (!page) {
     notFound();
   }
 
   const { product, related } = page;
+  const conversation = await getProductConversation(
+    product.id,
+    customer?.id ?? null,
+  );
   const compare =
     product.compareAtPrice !== null && product.compareAtPrice > product.price
       ? product.compareAtPrice
@@ -79,6 +90,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 : "https://schema.org/OutOfStock",
             url: pageUrl,
           },
+          ...(product.reviewCount > 0 && product.ratingAverage !== null
+            ? {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: product.ratingAverage.toFixed(1),
+                  reviewCount: product.reviewCount,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+              }
+            : {}),
         }}
       />
       <JsonLd
@@ -112,67 +134,55 @@ export default async function ProductPage({ params }: ProductPageProps) {
         name={product.name}
         value={product.price}
       />
-      <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-14">
-        <div className="grid gap-3">
-          {product.images.length > 0 ? (
-            product.images.map((image, index) => (
-              <div
-                key={image.url}
-                className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-cream"
-              >
-                <Image
-                  src={image.url}
-                  alt={image.alt || product.name}
-                  fill
-                  priority={index === 0}
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            ))
-          ) : (
-            <div className="aspect-[4/5] rounded-3xl bg-cream" />
-          )}
-        </div>
-        <div className="rounded-[2rem] bg-card/62 p-6 sm:p-8 lg:p-10">
-          <nav aria-label="Konum" className="text-sm text-espresso/70">
-            <Link href="/" className="hover:text-espresso">
-              Ana sayfa
-            </Link>
-            <span aria-hidden="true"> / </span>
-            <Link
-              href={`/kategori/${product.categorySlug}`}
-              className="hover:text-espresso"
-            >
-              {product.categoryName}
-            </Link>
-          </nav>
-          <h1 className="font-display mt-4 text-4xl leading-tight text-espresso sm:text-5xl">
-            {product.name}
-          </h1>
-          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 text-xl text-espresso">
-            <span>{formatPrice(product.price)}</span>
-            {compare ? (
-              <span className="text-base text-espresso/50 line-through">
-                {formatPrice(compare)}
-              </span>
-            ) : null}
-          </p>
-          <p className="mt-3 text-base text-espresso/80">
-            {product.stock > 0 ? "Stokta" : "Şu an stokta yok"}
-          </p>
-          {text ? (
-            <p className="mt-6 max-w-md text-lg leading-8 whitespace-pre-line text-espresso/80">
-              {text}
+      <div className="rounded-[2rem] bg-card/62 p-6 sm:p-8 lg:p-10">
+        <BackButton fallback={`/kategori/${product.categorySlug}`} />
+        <div className="mt-6 grid items-start gap-8 lg:grid-cols-2 lg:gap-14">
+          <ProductGallery images={product.images} name={product.name} />
+          <div>
+            <h1 className="font-display text-4xl leading-tight text-espresso sm:text-5xl">
+              {product.name}
+            </h1>
+            <div className="mt-4">
+              <RatingSummary
+                ratingAverage={product.ratingAverage}
+                reviewCount={product.reviewCount}
+                questionCount={product.questionCount}
+                linked
+                size="md"
+              />
+            </div>
+            <p className="mt-3 flex flex-wrap items-baseline gap-x-3 text-xl text-espresso">
+              {product.stock > 0 ? (
+                <span>{formatPrice(product.price)}</span>
+              ) : (
+                <span className="text-espresso/40">Stokta yok</span>
+              )}
+              {compare && product.stock > 0 ? (
+                <span className="text-base text-espresso/50 line-through">
+                  {formatPrice(compare)}
+                </span>
+              ) : null}
             </p>
-          ) : null}
-          <AddToCart
-            slug={product.slug}
-            stock={product.stock}
-            price={product.price}
-          />
+            {text ? (
+              <p className="mt-6 max-w-md text-lg leading-8 whitespace-pre-line text-espresso/80">
+                {text}
+              </p>
+            ) : null}
+            <AddToCart
+              slug={product.slug}
+              stock={product.stock}
+              price={product.price}
+            />
+          </div>
         </div>
       </div>
+      <ProductFeedback
+        slug={product.slug}
+        signedIn={customer !== null}
+        ownReview={conversation.ownReview}
+        reviews={conversation.reviews}
+        questions={conversation.questions}
+      />
       {related.length > 0 ? (
         <section className="surface-panel mt-8 rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
           <h2 className="font-display text-3xl text-espresso">Aynı bölümden</h2>

@@ -15,7 +15,8 @@ export function AddToCart({
   price: number;
 }) {
   const [state, action, pending] = useActionState(addToCart, {});
-  const disabled = stock < 1 || pending;
+  const outOfStock = stock < 1;
+  const disabled = outOfStock || pending;
 
   return (
     <form
@@ -35,28 +36,35 @@ export function AddToCart({
     >
       <input type="hidden" name="slug" value={slug} />
       <div className="mx-auto flex max-w-7xl items-center gap-3 lg:mx-0 lg:max-w-md">
-        <p className="font-sans text-base text-espresso lg:hidden">
-          {formatPrice(price)}
+        <p
+          className={`font-sans text-base lg:hidden ${
+            outOfStock ? "text-espresso/40" : "text-espresso"
+          }`}
+        >
+          {outOfStock ? "Stokta yok" : formatPrice(price)}
         </p>
-        <label className="sr-only" htmlFor={`adet-${slug}`}>
-          Adet
-        </label>
-        <input
-          id={`adet-${slug}`}
-          name="quantity"
-          type="number"
-          min={1}
-          max={Math.max(stock, 1)}
-          defaultValue={1}
-          disabled={stock < 1}
-          className="h-12 w-16 rounded-full border border-line bg-card text-center text-base text-espresso outline-none"
-        />
+        {outOfStock ? null : (
+          <>
+            <label className="sr-only" htmlFor={`adet-${slug}`}>
+              Adet
+            </label>
+            <input
+              id={`adet-${slug}`}
+              name="quantity"
+              type="number"
+              min={1}
+              max={Math.max(stock, 1)}
+              defaultValue={1}
+              className="h-12 w-16 rounded-full border border-line bg-card text-center text-base text-espresso outline-none"
+            />
+          </>
+        )}
         <button
           type="submit"
           disabled={disabled}
           className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-coffee px-5 text-sm text-background disabled:opacity-60"
         >
-          {stock < 1 ? "Stokta yok" : pending ? "Ekleniyor" : "Sepete ekle"}
+          {outOfStock ? "Gelince haber ver" : pending ? "Ekleniyor" : "Sepete ekle"}
         </button>
       </div>
       {state.error ? (

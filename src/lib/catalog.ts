@@ -1,5 +1,10 @@
 import { connection } from "next/server";
 import { prisma } from "@/lib/db";
+import {
+  emptyFeedback,
+  feedbackStats,
+  type ProductFeedback,
+} from "@/lib/feedback";
 
 export type StoreCategory = {
   slug: string;
@@ -10,6 +15,7 @@ export type StoreCategory = {
 };
 
 export type StoreProduct = {
+  id: string;
   slug: string;
   name: string;
   summary: string;
@@ -25,11 +31,15 @@ export type StoreProduct = {
   categoryName: string;
   seoTitle: string | null;
   seoDescription: string | null;
+  ratingAverage: number | null;
+  reviewCount: number;
+  questionCount: number;
 };
 
 const perCategory = 3;
 
 type ProductRow = {
+  id: string;
   slug: string;
   name: string;
   summary: string;
@@ -46,6 +56,7 @@ type ProductRow = {
 };
 
 const productSelect = {
+  id: true,
   slug: true,
   name: true,
   summary: true,
@@ -72,10 +83,11 @@ function money(value: { toString(): string } | null) {
   return Number.isFinite(amount) ? amount : null;
 }
 
-function toProduct(row: ProductRow): StoreProduct {
+function toProduct(row: ProductRow, feedback: ProductFeedback): StoreProduct {
   const images = row.images.filter((image) => image.url);
   const first = images[0];
   return {
+    id: row.id,
     slug: row.slug,
     name: row.name,
     summary: row.summary,
@@ -91,7 +103,15 @@ function toProduct(row: ProductRow): StoreProduct {
     categoryName: row.category.name,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
+    ratingAverage: feedback.ratingAverage,
+    reviewCount: feedback.reviewCount,
+    questionCount: feedback.questionCount,
   };
+}
+
+async function present(rows: ProductRow[]) {
+  const stats = await feedbackStats(rows.map((row) => row.id));
+  return rows.map((row) => toProduct(row, stats.get(row.id) ?? emptyFeedback));
 }
 
 export function categoryLabel(name: string) {
@@ -155,7 +175,7 @@ async function productsByRoot() {
   const groups = new Map(
     roots.map((root) => [root.slug, [] as StoreProduct[]]),
   );
-  for (const product of rows.map(toProduct)) {
+  for (const product of await present(rows)) {
     const categoryId = categoryOf.get(product.slug);
     if (!categoryId) {
       continue;
@@ -294,7 +314,7 @@ export async function getStoreCategory(slug: string) {
       seoTitle: category.seoTitle,
       seoDescription: category.seoDescription,
     },
-    products: rows.map(toProduct),
+    products: await present(rows),
   };
 }
 
@@ -318,9 +338,15 @@ export async function getActiveProduct(slug: string) {
     select: productSelect,
   });
 
+  const listed = await present([row, ...relatedRows]);
+  const product = listed[0];
+  if (!product) {
+    return null;
+  }
+
   return {
-    product: toProduct(row),
-    related: relatedRows.map(toProduct),
+    product,
+    related: listed.slice(1),
   };
 }
 
@@ -345,5 +371,5 @@ export async function searchActiveProducts(query: string) {
     take: 24,
     select: productSelect,
   });
-  return rows.map(toProduct);
+  return present(rows);
 }
