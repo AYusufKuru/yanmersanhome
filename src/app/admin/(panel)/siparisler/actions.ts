@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { OrderStatus, Prisma } from "@/generated/prisma/client";
+import type { OrderStatus } from "@/generated/prisma/client";
 import { canSetStatus, restoresStock } from "@/lib/admin/order-flow";
 import {
   orderIssue,
@@ -15,7 +15,10 @@ import { orderStatusLabel } from "@/lib/order-status";
 
 export type OrderActionState = { error?: string };
 
-async function restoreStock(tx: Prisma.TransactionClient, orderId: string) {
+async function restoreStock(
+  tx: Pick<typeof prisma, "orderItem" | "product">,
+  orderId: string,
+) {
   const items = await tx.orderItem.findMany({
     where: { orderId },
     select: { productId: true, quantity: true },
