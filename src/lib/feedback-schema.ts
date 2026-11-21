@@ -30,9 +30,16 @@ export const questionSchema = z.object({
     .max(400, { error: "Soru en fazla 400 karakter olmalı." }),
 });
 
+const questionId = z.string().trim().min(1).max(40);
+
+export const questionUpdateSchema = questionSchema.extend({
+  questionId,
+});
+
 export const answerSchema = z.object({
   slug,
-  questionId: z.string().trim().min(1).max(40),
+  questionId,
+  parentId: z.string().trim().min(1).max(40).optional(),
   body: z
     .string()
     .trim()

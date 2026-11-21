@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { accountCookieName, accountMaxAgeSeconds } from "@/lib/account-cookie";
@@ -136,7 +137,9 @@ export async function getSessionUser(
     },
   });
 
-  if (!session || session.expiresAt.getTime() <= Date.now()) {
+  await connection();
+  const now = Date.now();
+  if (!session || session.expiresAt.getTime() <= now) {
     if (session) {
       await prisma.session.delete({ where: { id: session.id } });
     }

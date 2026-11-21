@@ -1,12 +1,15 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import {
   changePassword,
   createAddress,
   loginCustomer,
   lookupGuestOrder,
   registerCustomer,
+  requestPasswordReset,
+  resetPassword,
   updateProfile,
   type AccountState,
 } from "@/app/(store)/hesap/actions";
@@ -199,6 +202,63 @@ export function CustomerLoginForm() {
       />
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? "Giriliyor" : "Giriş yap"}
+      </button>
+      <Link href="/hesap/sifre" className="text-sm text-coffee">
+        Şifremi unuttum
+      </Link>
+    </form>
+  );
+}
+
+export function PasswordResetRequestForm() {
+  const [state, action, pending] = useActionState(requestPasswordReset, {});
+
+  return (
+    <form action={action} className="mt-4 grid gap-4">
+      {state.sent ? (
+        <p className="text-sm text-success">
+          Bu adres kayıtlıysa sıfırlama bağlantısı gönderildi.
+        </p>
+      ) : (
+        <Alert state={state} />
+      )}
+      <label className="text-sm text-espresso">
+        E-posta
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={state.email ?? ""}
+          className={inputClass}
+        />
+      </label>
+      <button type="submit" disabled={pending} className={buttonClass}>
+        {pending ? "Gönderiliyor" : "Bağlantı gönder"}
+      </button>
+    </form>
+  );
+}
+
+export function PasswordResetForm({ token }: { token: string }) {
+  const [state, action, pending] = useActionState(resetPassword, {});
+
+  return (
+    <form action={action} className="mt-4 grid gap-4">
+      <Alert state={state} />
+      <input type="hidden" name="token" value={token} />
+      <PasswordField
+        label="Yeni şifre"
+        name="password"
+        autoComplete="new-password"
+      />
+      <PasswordField
+        label="Yeni şifre, yeniden"
+        name="confirmPassword"
+        autoComplete="new-password"
+      />
+      <button type="submit" disabled={pending} className={buttonClass}>
+        {pending ? "Kaydediliyor" : "Şifreyi yenile"}
       </button>
     </form>
   );

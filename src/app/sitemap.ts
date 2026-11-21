@@ -19,6 +19,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
+    ...["/hakkimizda", "/teslimat-iade", "/gizlilik", "/mesafeli-satis"].map(
+      (path) => ({
+        url: absoluteUrl(path),
+        changeFrequency: "yearly" as const,
+        priority: 0.3,
+      }),
+    ),
     ...categories.map((category) => ({
       url: absoluteUrl(`/kategori/${category.slug}`),
       lastModified: category.updatedAt,

@@ -57,6 +57,28 @@ export const profileSchema = z.object({
   phone,
 });
 
+export const passwordResetRequestSchema = z.object({
+  email,
+});
+
+export const passwordResetSchema = z
+  .object({
+    token: z.string().trim().min(20).max(200),
+    password: passwordSchema,
+    confirmPassword: z
+      .string()
+      .min(1, { error: "Yeni şifreyi yeniden yazın." }),
+  })
+  .superRefine((value, context) => {
+    if (value.password !== value.confirmPassword) {
+      context.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Şifreler aynı değil.",
+      });
+    }
+  });
+
 export const passwordChangeSchema = z
   .object({
     currentPassword: z.string().min(1, { error: "Mevcut şifre gerekli." }),

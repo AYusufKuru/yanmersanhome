@@ -20,6 +20,7 @@ export type StoreProduct = {
   name: string;
   summary: string;
   description: string;
+  details: string;
   price: number;
   compareAtPrice: number | null;
   stock: number;
@@ -44,6 +45,7 @@ type ProductRow = {
   name: string;
   summary: string;
   description: string;
+  details: string;
   price: { toString(): string };
   compareAtPrice: { toString(): string } | null;
   stock: number;
@@ -61,6 +63,7 @@ const productSelect = {
   name: true,
   summary: true,
   description: true,
+  details: true,
   price: true,
   compareAtPrice: true,
   stock: true,
@@ -92,6 +95,7 @@ function toProduct(row: ProductRow, feedback: ProductFeedback): StoreProduct {
     name: row.name,
     summary: row.summary,
     description: row.description,
+    details: row.details,
     price: money(row.price) ?? 0,
     compareAtPrice: money(row.compareAtPrice),
     stock: row.stock,

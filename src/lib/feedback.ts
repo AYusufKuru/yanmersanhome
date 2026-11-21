@@ -78,15 +78,26 @@ export async function getProductConversation(
         id: true,
         body: true,
         createdAt: true,
-        user: { select: { name: true } },
+        user: { select: { id: true, name: true } },
         answers: {
+          where: { parentId: null },
           orderBy: { createdAt: "asc" },
           take: 20,
           select: {
             id: true,
             body: true,
             createdAt: true,
-            user: { select: { name: true } },
+            user: { select: { name: true, role: true } },
+            replies: {
+              orderBy: { createdAt: "asc" },
+              take: 20,
+              select: {
+                id: true,
+                body: true,
+                createdAt: true,
+                user: { select: { name: true } },
+              },
+            },
           },
         },
       },
@@ -99,5 +110,23 @@ export async function getProductConversation(
       : Promise.resolve(null),
   ]);
 
-  return { reviews, questions, ownReview };
+  return {
+    reviews,
+    ownReview,
+    questions: questions.map((question) => ({
+      id: question.id,
+      body: question.body,
+      createdAt: question.createdAt,
+      mine: viewerId !== null && question.user.id === viewerId,
+      user: { name: question.user.name },
+      answers: question.answers.map((answer) => ({
+        id: answer.id,
+        body: answer.body,
+        createdAt: answer.createdAt,
+        fromAdmin: answer.user.role === "ADMIN",
+        user: { name: answer.user.name },
+        replies: answer.replies,
+      })),
+    })),
+  };
 }

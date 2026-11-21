@@ -4,7 +4,9 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import {
   answerQuestion,
   askQuestion,
+  deleteQuestion,
   saveReview,
+  updateQuestion,
   type FeedbackState,
 } from "@/app/(store)/urun/actions";
 import { StarMark } from "@/components/storefront/rating-summary";
@@ -134,12 +136,114 @@ export function QuestionForm({ slug }: { slug: string }) {
   );
 }
 
-export function AnswerForm({
+export function OwnQuestion({
   slug,
   questionId,
+  initialBody,
 }: {
   slug: string;
   questionId: string;
+  initialBody: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [editState, editAction, editPending] = useActionState(updateQuestion, {});
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deleteQuestion,
+    {},
+  );
+
+  return (
+    <div className="mt-3">
+      {editing ? (
+        <form action={editAction} className="max-w-xl">
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="questionId" value={questionId} />
+          <label className="block text-sm text-espresso">
+            Sorun
+            <textarea
+              name="body"
+              required
+              minLength={10}
+              maxLength={400}
+              rows={3}
+              defaultValue={initialBody}
+              className={fieldClass}
+            />
+          </label>
+          <div className="mt-3 flex gap-3">
+            <button type="submit" disabled={editPending} className={buttonClass}>
+              {editPending ? "Kaydediliyor" : "Kaydet"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="text-sm text-muted"
+            >
+              Vazgeç
+            </button>
+          </div>
+          <FormNote state={editState} />
+        </form>
+      ) : (
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              setConfirming(false);
+              setEditing(true);
+            }}
+            className="text-sm text-coffee"
+          >
+            Düzenle
+          </button>
+          {confirming ? (
+            <form action={deleteAction} className="flex items-center gap-3">
+              <input type="hidden" name="slug" value={slug} />
+              <input type="hidden" name="questionId" value={questionId} />
+              <button
+                type="submit"
+                disabled={deletePending}
+                className="text-sm text-danger"
+              >
+                {deletePending ? "Siliniyor" : "Evet, sil"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                className="text-sm text-muted"
+              >
+                Vazgeç
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirming(true)}
+              className="text-sm text-muted"
+            >
+              Sil
+            </button>
+          )}
+        </div>
+      )}
+      <FormNote state={deleteState} />
+    </div>
+  );
+}
+
+export function AnswerForm({
+  slug,
+  questionId,
+  parentId,
+  label = "Cevap yaz",
+  fieldLabel = "Cevabın",
+}: {
+  slug: string;
+  questionId: string;
+  parentId?: string;
+  label?: string;
+  fieldLabel?: string;
 }) {
   const [state, action, pending] = useActionState(answerQuestion, {});
   const [open, setOpen] = useState(false);
@@ -158,7 +262,7 @@ export function AnswerForm({
         onClick={() => setOpen(true)}
         className="mt-3 text-sm text-coffee"
       >
-        Cevap yaz
+        {label}
       </button>
     );
   }
@@ -167,8 +271,9 @@ export function AnswerForm({
     <form ref={formRef} action={action} className="mt-3 max-w-xl">
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="questionId" value={questionId} />
+      {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
       <label className="block text-sm text-espresso">
-        Cevabın
+        {fieldLabel}
         <textarea
           name="body"
           required

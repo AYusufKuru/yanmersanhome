@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckoutForm } from "@/components/storefront/checkout-form";
+import { PaymentMarks } from "@/components/storefront/payment-marks";
 import { CheckoutEvent } from "@/components/storefront/track-events";
 import { getCustomer, listAddresses } from "@/lib/account";
 import { getCartView } from "@/lib/cart";
@@ -110,6 +111,22 @@ export default async function CheckoutPage() {
         >
           Sepete dön
         </Link>
+        <p className="mt-6 text-sm leading-6 text-muted">
+          Ödeme sayfası SSL sertifikası ile korunur. Kart bilgisi bu sitede
+          saklanmaz.
+        </p>
+        <div className="mt-4">
+          <PaymentMarks />
+        </div>
+        <p className="mt-4 text-sm leading-6 text-muted">
+          <Link href="/mesafeli-satis" className="text-coffee underline">
+            Mesafeli satış sözleşmesi
+          </Link>
+          {" · "}
+          <Link href="/teslimat-iade" className="text-coffee underline">
+            Teslimat ve iade
+          </Link>
+        </p>
       </aside>
     </section>
   );

@@ -63,6 +63,7 @@ model User {
   reviews      Review[]
   questions    ProductQuestion[]
   answers      ProductAnswer[]
+  passwordResets PasswordReset[]
 }
 
 model Session {
@@ -75,6 +76,17 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model LoginAttempt {
@@ -128,6 +140,7 @@ model Product {
   name           String
   summary        String         @default("")
   description    String         @default("")
+  details        String         @default("")
   price          Decimal        @db.Decimal(12, 2)
   compareAtPrice Decimal?       @db.Decimal(12, 2)
   sku            String         @unique
@@ -184,10 +197,14 @@ model ProductAnswer {
   question   ProductQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   userId     String
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     ProductAnswer?  @relation("AnswerThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    ProductAnswer[] @relation("AnswerThread")
   body       String
   createdAt  DateTime        @default(now())
 
   @@index([questionId, createdAt])
+  @@index([parentId])
 }
 
 model ProductImage {

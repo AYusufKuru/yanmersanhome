@@ -60,12 +60,14 @@ function scrollToSection(
     return;
   }
   event.preventDefault();
+  history.pushState(null, "", `#${id}`);
+  window.dispatchEvent(new Event("hashchange"));
+  const card = document.getElementById("urun-kart") ?? target;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  target.scrollIntoView({
+  card.scrollIntoView({
     behavior: reduce ? "auto" : "smooth",
     block: "start",
   });
-  history.pushState(null, "", `#${id}`);
 }
 
 export function formatRating(value: number) {

@@ -1,4 +1,13 @@
 import Link from "next/link";
+import { PaymentMarks } from "@/components/storefront/payment-marks";
+import { seller } from "@/lib/seller";
+
+const legalLinks = [
+  { href: "/hakkimizda", label: "Hakkımızda" },
+  { href: "/teslimat-iade", label: "Teslimat ve iade" },
+  { href: "/gizlilik", label: "Gizlilik sözleşmesi" },
+  { href: "/mesafeli-satis", label: "Mesafeli satış sözleşmesi" },
+];
 
 export function Footer({
   categories,
@@ -36,10 +45,24 @@ export function Footer({
           <p className="text-xs tracking-[0.18em] text-latte uppercase">
             İletişim
           </p>
-          <p className="mt-4 max-w-xs text-sm leading-6 text-cream">
-            Ünvan, adres ve telefon işletme bilgisi eklendiğinde burada
-            görünecek.
-          </p>
+          <a
+            href={`mailto:${seller.email}`}
+            className="mt-4 inline-block text-sm text-cream"
+          >
+            {seller.email}
+          </a>
+          <ul className="mt-4 space-y-2">
+            {legalLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="text-sm text-cream">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6">
+            <PaymentMarks tone="dark" />
+          </div>
         </div>
       </div>
     </footer>

@@ -22,6 +22,7 @@ export type ProductFormValues = {
   slug: string;
   summary: string;
   description: string;
+  details: string;
   price: string;
   compareAtPrice: string;
   sku: string;
@@ -313,6 +314,18 @@ export function ProductForm({
             />
           </label>
         </div>
+        <label className="text-sm text-espresso">
+          Ürün bilgileri
+          <textarea
+            name="details"
+            defaultValue={values.details}
+            placeholder={"Malzeme: Porselen\nÖlçü: 30 × 20 cm"}
+            className={areaClass}
+          />
+          <span className="mt-2 block text-sm text-muted">
+            Her satıra bir bilgi yazın. İki nokta üst üste etiketi değerden ayırır.
+          </span>
+        </label>
       </div>
       <div className="flex flex-col gap-5 lg:border-l lg:border-line lg:pl-6">
         <div className="flex flex-col gap-4">

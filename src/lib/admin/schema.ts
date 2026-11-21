@@ -64,6 +64,7 @@ export const productSchema = z
       }),
     summary: z.string().trim().max(300),
     description: z.string().trim().max(8000),
+    details: z.string().trim().max(4000),
     price: money,
     compareAtPrice: optionalMoney,
     sku: z

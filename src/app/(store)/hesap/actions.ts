@@ -9,6 +9,8 @@ import {
   customerLoginSchema,
   guestLookupSchema,
   passwordChangeSchema,
+  passwordResetRequestSchema,
+  passwordResetSchema,
   profileSchema,
   registerSchema,
 } from "@/lib/account-schema";
@@ -25,6 +27,13 @@ import {
 } from "@/lib/auth";
 import { isUniqueConflict } from "@/lib/admin/labels";
 import { prisma } from "@/lib/db";
+import { mailConfigured, sendMail } from "@/lib/mail";
+import {
+  createPasswordReset,
+  findPasswordReset,
+  hashResetToken,
+} from "@/lib/password-reset";
+import { absoluteUrl } from "@/lib/site";
 import {
   hashPassword,
   dummyPasswordHash,
@@ -32,7 +41,12 @@ import {
 } from "@/lib/password";
 import { requireCustomer } from "@/lib/account";
 
-export type AccountState = { error?: string; saved?: boolean; email?: string };
+export type AccountState = {
+  error?: string;
+  saved?: boolean;
+  sent?: boolean;
+  email?: string;
+};
 
 export async function registerCustomer(
   _state: AccountState,
@@ -160,6 +174,99 @@ export async function updateProfile(
   });
   revalidatePath("/hesap", "layout");
   return { saved: true };
+}
+
+export async function requestPasswordReset(
+  _state: AccountState,
+  formData: FormData,
+): Promise<AccountState> {
+  const parsed = passwordResetRequestSchema.safeParse({
+    email: formData.get("email"),
+  });
+  if (!parsed.success) {
+    return { error: accountIssue(parsed.error) };
+  }
+
+  const { email } = parsed.data;
+  if (!mailConfigured()) {
+    return { error: "Şifre sıfırlama şu an kullanılamıyor.", email };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    if (!user) {
+      return { sent: true, email };
+    }
+
+    const token = await createPasswordReset(user.id);
+    if (!token) {
+      return { sent: true, email };
+    }
+
+    const link = absoluteUrl(`/hesap/sifre/${token}`);
+    const sent = await sendMail({
+      to: email,
+      subject: "Yanmersanhome şifre yenileme",
+      text: [
+        "Şifrenizi yenilemek için bu bağlantıyı açın. Bağlantı 1 saat geçerlidir.",
+        "",
+        link,
+        "",
+        "Bu isteği siz yapmadıysanız mektubu yok sayın.",
+      ].join("\n"),
+    });
+    if (!sent.sent) {
+      await prisma.passwordReset.deleteMany({
+        where: { tokenHash: hashResetToken(token) },
+      });
+      return { error: "E-posta şu an gönderilemedi.", email };
+    }
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("Şifre sıfırlama mektubu gönderilemedi.");
+    return { error: "E-posta şu an gönderilemedi.", email };
+  }
+
+  return { sent: true, email };
+}
+
+export async function resetPassword(
+  _state: AccountState,
+  formData: FormData,
+): Promise<AccountState> {
+  const parsed = passwordResetSchema.safeParse({
+    token: formData.get("token"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) {
+    return { error: accountIssue(parsed.error) };
+  }
+
+  try {
+    const reset = await findPasswordReset(parsed.data.token);
+    if (!reset) {
+      return { error: "Bağlantının süresi dolmuş. Yeni bağlantı isteyin." };
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: reset.userId },
+        data: { passwordHash: await hashPassword(parsed.data.password) },
+      }),
+      prisma.passwordReset.deleteMany({ where: { userId: reset.userId } }),
+      prisma.session.deleteMany({ where: { userId: reset.userId } }),
+    ]);
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("Şifre sıfırlanamadı.");
+    return { error: "Şifre şu an yenilenemedi." };
+  }
+
+  redirect("/hesap?bolum=giris");
 }
 
 export async function changePassword(

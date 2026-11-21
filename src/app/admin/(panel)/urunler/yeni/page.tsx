@@ -35,6 +35,7 @@ export default async function NewProductPage() {
           slug: "",
           summary: "",
           description: "",
+          details: "",
           price: "",
           compareAtPrice: "",
           sku: "",

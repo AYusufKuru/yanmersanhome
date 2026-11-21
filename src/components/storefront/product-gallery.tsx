@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 type GalleryImage = {
@@ -25,14 +24,12 @@ export function ProductGallery({
 
   return (
     <div className="w-full max-w-xl">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-cream">
-        <Image
+      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-cream">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={current.url}
           alt={current.alt || name}
-          fill
-          priority={index === 0}
-          sizes="(min-width: 1024px) 36rem, 100vw"
-          className="object-cover"
+          className="absolute top-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2"
         />
       </div>
       {frames.length > 1 ? (
@@ -52,12 +49,11 @@ export function ProductGallery({
                       : ""
                   }`}
                 >
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={image.url}
                     alt=""
-                    fill
-                    sizes="64px"
-                    className={`object-cover transition-opacity duration-300 motion-reduce:transition-none ${
+                    className={`absolute top-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2 transition-opacity duration-300 motion-reduce:transition-none ${
                       selected
                         ? "opacity-100"
                         : "opacity-40 group-hover:opacity-100"

@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { cartCookieName, cartMaxAgeSeconds } from "@/lib/cart-cookie";
@@ -137,6 +138,11 @@ async function couponForQuote(cart: LoadedCart): Promise<QuoteCoupon | null> {
   };
 }
 
+async function requestNow() {
+  await connection();
+  return new Date();
+}
+
 async function toView(cart: LoadedCart | null): Promise<CartView> {
   if (!cart || cart.items.length === 0) {
     return { ...emptyCart, couponCode: cart?.coupon?.code ?? null };
@@ -156,7 +162,7 @@ async function toView(cart: LoadedCart | null): Promise<CartView> {
     coupon,
     shippingFeeKurus: shipping.shippingFeeKurus,
     freeShippingLimitKurus: shipping.freeShippingLimitKurus,
-    now: new Date(),
+    now: await requestNow(),
   });
 
   const lines: CartViewLine[] = cart.items.map((item, index) => {
